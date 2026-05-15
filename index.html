@@ -216,22 +216,7 @@
 <body>
 <div class="grain"></div>
 
-<!-- Password gate -->
-<div id="pwGate">
-  <div class="pw-card">
-    <div class="pw-crest">N</div>
-    <div class="pw-title">Nalam <em>Clinic</em></div>
-    <div class="pw-sub">Partner Access · Secure Entry</div>
-    <form class="pw-form" id="pwForm" onsubmit="return checkPassword(event)">
-      <input type="password" id="pwInput" class="pw-input" placeholder="Enter access password" autocomplete="off" autofocus />
-      <div class="pw-error-msg" id="pwError"></div>
-      <button type="submit" class="pw-btn">Enter Dashboard</button>
-    </form>
-    <div class="pw-hint">For access, contact administrator</div>
-  </div>
-</div>
-
-<div id="loadOverlay" style="display:none">
+<div id="loadOverlay">
   <div class="load-card">
     <div class="load-crest" id="loadCrest">N</div>
     <div class="load-title">Nalam <em>Clinic</em></div>
@@ -363,46 +348,11 @@
 
 <script>
 // =========================================================
-// PASSWORD GATE
+// AUTHENTICATION — handled by Cloudflare Access
 // =========================================================
-const ACCESS_PW = 'nalam2025';
-const AUTH_KEY = 'nalam_auth';
-const AUTH_DAYS = 7;
-
-function isAuthed(){
-  try {
-    const v = localStorage.getItem(AUTH_KEY);
-    if(!v) return false;
-    const data = JSON.parse(v);
-    if(!data || !data.expires) return false;
-    return Date.now() < data.expires;
-  } catch(e){ return false; }
-}
-
-function checkPassword(e){
-  if(e) e.preventDefault();
-  const input = document.getElementById('pwInput');
-  const error = document.getElementById('pwError');
-  const val = (input.value || '').trim();
-  if(val === ACCESS_PW){
-    const expires = Date.now() + AUTH_DAYS * 24 * 60 * 60 * 1000;
-    try { localStorage.setItem(AUTH_KEY, JSON.stringify({expires})); } catch(e){}
-    document.getElementById('pwGate').classList.remove('show');
-    document.getElementById('loadOverlay').style.display = 'flex';
-    bootstrap();
-  } else {
-    input.classList.add('error');
-    error.textContent = 'Incorrect password. Please try again.';
-    input.value = '';
-    setTimeout(()=>input.classList.remove('error'), 400);
-    input.focus();
-  }
-  return false;
-}
-
 function logout(){
-  try { localStorage.removeItem(AUTH_KEY); } catch(e){}
-  location.reload();
+  // Cloudflare Access logout endpoint
+  window.location.href = '/cdn-cgi/access/logout';
 }
 
 // =========================================================
@@ -958,18 +908,8 @@ document.addEventListener('keydown', e=>{
   }
 });
 
-// Entry point — check password first
-(function init(){
-  if(isAuthed()){
-    document.getElementById('pwGate').classList.remove('show');
-    document.getElementById('loadOverlay').style.display = 'flex';
-    bootstrap();
-  } else {
-    document.getElementById('loadOverlay').style.display = 'none';
-    document.getElementById('pwGate').classList.add('show');
-    setTimeout(()=>document.getElementById('pwInput').focus(), 100);
-  }
-})();
+// Entry point — Cloudflare Access handles authentication before this loads
+bootstrap();
 </script>
 </body>
 </html>
