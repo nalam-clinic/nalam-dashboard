@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nalam Clinic — Operations Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f3eee4;
+    --bg-2:#ece4d4;
+    --ink:#1b2a2a;
+    --ink-soft:#3a4949;
+    --muted:#7e8a8a;
+    --line:rgba(27,42,42,.12);
+    --line-strong:rgba(27,42,42,.28);
+    --teal:#0f5f5c;
+    --teal-deep:#073d3b;
+    --ochre:#c2731a;
+    --rust:#a4341c;
+    --moss:#5e7a3a;
+    --gold:#b8932a;
+    --card:#fbf7ee;
+    --card-2:#fffdf6;
+    --shadow: 0 1px 0 rgba(27,42,42,.05), 0 30px 60px -30px rgba(27,42,42,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter Tight', sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    background-image:
+      radial-gradient(ellipse at top left, rgba(15,95,92,.06), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(194,115,26,.05), transparent 55%);
+    min-height:100vh;
+  }
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 0 0.15 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ===== APP SHELL ===== */
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;position:relative;z-index:2}
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{
+    background:#0a2625;color:#e8e2d4;padding:28px 18px;position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;gap:20px;border-right:1px solid rgba(255,255,255,.06);
+  }
+  .sb-brand{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sb-crest{
+    width:42px;height:42px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #1d7a76, #073d3b);
+    display:grid;place-items:center;color:#f3eee4;
+    font-family:'Fraunces',serif;font-weight:700;font-size:18px;font-style:italic;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,.3);
+  }
+  .sb-title{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.01em;line-height:1.15}
+  .sb-title em{color:#7ec5c2;font-style:italic;font-weight:500}
+  .sb-sub{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:rgba(232,226,212,.45);margin-top:4px;text-transform:uppercase}
+
+  .sb-section{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(232,226,212,.45);margin:8px 6px 4px}
+  .sb-nav{display:flex;flex-direction:column;gap:2px}
+  .sb-link{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;cursor:pointer;
+    color:rgba(232,226,212,.78);font-size:13px;font-weight:500;
+    transition:all .18s ease;border:1px solid transparent;
+  }
+  .sb-link:hover{background:rgba(255,255,255,.04);color:#fff}
+  .sb-link.active{background:rgba(126,197,194,.13);color:#fff;border-color:rgba(126,197,194,.25)}
+  .sb-link svg{width:16px;height:16px;flex-shrink:0;opacity:.85}
+  .sb-link.active svg{opacity:1}
+  .sb-link .badge{
+    margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.08);color:rgba(232,226,212,.7);
+  }
+  .sb-link.active .badge{background:#7ec5c2;color:#073d3b;font-weight:700}
+
+  .sb-footer{margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:rgba(232,226,212,.4);line-height:1.7}
+
+  /* ===== MAIN ===== */
+  .main{padding:32px 44px 64px;min-width:0;overflow-x:hidden}
+
+  /* ===== TOPBAR ===== */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;gap:20px;
+    padding-bottom:20px;margin-bottom:26px;border-bottom:1px solid var(--line-strong);
+  }
+  .crumbs{display:flex;align-items:baseline;gap:14px}
+  .crumbs .h{font-family:'Fraunces',serif;font-size:32px;font-weight:400;letter-spacing:-.025em;margin:0;line-height:1}
+  .crumbs .h em{color:var(--teal);font-style:italic;font-weight:500}
+  .crumbs .sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+
+  .topbar-actions{display:flex;align-items:center;gap:10px}
+  .btn{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;
+    padding:9px 14px;border-radius:7px;border:1px solid var(--line-strong);background:var(--card);
+    color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-transform:uppercase;
+    transition:all .18s ease;
+  }
+  .btn:hover{background:var(--teal-deep);color:#f3eee4;border-color:var(--teal-deep)}
+  .btn.primary{background:var(--teal-deep);color:#f3eee4;border-color:var(--teal-deep)}
+  .btn.primary:hover{background:#0a2625}
+  .btn svg{width:13px;height:13px}
+  .search-box{
+    display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);
+    border:1px solid var(--line);border-radius:8px;
+  }
+  .search-box input{border:none;outline:none;background:transparent;font-family:'Inter Tight';font-size:13px;color:var(--ink);width:180px}
+  .search-box svg{width:14px;height:14px;color:var(--muted)}
+
+  /* ===== MONTH SWITCHER (sticky filter bar) ===== */
+  .filterbar{
+    display:flex;justify-content:space-between;align-items:center;gap:20px;
+    padding:14px 20px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    margin-bottom:24px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .filterbar::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--teal)}
+  .filterbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .pill-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .month-tabs{display:flex;gap:5px;flex-wrap:wrap}
+  .month-btn{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+    padding:7px 12px;border-radius:7px;border:1px solid var(--line);background:transparent;
+    color:var(--ink-soft);cursor:pointer;letter-spacing:.08em;transition:all .18s ease;
+  }
+  .month-btn:hover{border-color:var(--teal);color:var(--teal)}
+  .month-btn.active{background:var(--teal-deep);color:#f3eee4;border-color:var(--teal-deep)}
+  .month-btn.disabled{opacity:.3;pointer-events:none}
+  .filterbar-right{display:flex;align-items:center;gap:14px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 0 rgba(94,122,58,.5);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(94,122,58,.5)}70%{box-shadow:0 0 0 8px rgba(94,122,58,0)}100%{box-shadow:0 0 0 0 rgba(94,122,58,0)}}
+
+  /* ===== VIEW CONTAINER ===== */
+  .view{display:none;animation:fade .35s ease both}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ===== KPI GRID ===== */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+  .kpi{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;position:relative;overflow:hidden;box-shadow:var(--shadow);
+    transition:transform .25s ease;cursor:pointer;
+  }
+  .kpi:hover{transform:translateY(-3px)}
+  .kpi::after{
+    content:'';position:absolute;right:-20px;top:-20px;width:110px;height:110px;
+    border-radius:50%;background:radial-gradient(circle, currentColor 0%, transparent 70%);
+    opacity:.06;pointer-events:none;
+  }
+  .kpi .lbl{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:7px;
+  }
+  .kpi .lbl .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+  .kpi .val{font-family:'Fraunces',serif;font-weight:500;font-size:30px;line-height:1.1;letter-spacing:-.025em;color:var(--ink)}
+  .kpi .val .currency{font-size:14px;font-weight:400;color:var(--muted);margin-right:2px;vertical-align:6px;font-family:'Inter Tight', sans-serif}
+  .kpi .foot{margin-top:12px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-soft)}
+  .kpi .delta{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10.5px;padding:3px 7px;border-radius:5px}
+  .delta.up{background:rgba(94,122,58,.13);color:var(--moss)}
+  .delta.down{background:rgba(164,52,28,.13);color:var(--rust)}
+  .delta.flat{background:rgba(126,138,138,.13);color:var(--muted)}
+  .kpi.revenue{color:var(--teal)}
+  .kpi.expense{color:var(--rust)}
+  .kpi.profit{color:var(--moss)}
+  .kpi.patients{color:var(--gold)}
+  .kpi.avg{color:var(--ochre)}
+  .kpi.margin{color:var(--teal-deep)}
+  .kpi.gpay{color:#3a6e8f}
+  .kpi.cash{color:#7c5a2e}
+
+  /* ===== CARDS ===== */
+  .panels{display:grid;grid-template-columns:1.65fr 1fr;gap:22px;margin-bottom:22px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:24px 26px;box-shadow:var(--shadow);position:relative;
+  }
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line);gap:14px;flex-wrap:wrap}
+  .card-head h2{font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:21px;margin:0;letter-spacing:-.01em;color:var(--ink)}
+  .card-head .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  .card-head .toolset{display:flex;gap:6px;margin-left:auto}
+  .mini-btn{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:5px 9px;border-radius:5px;
+    border:1px solid var(--line);background:transparent;cursor:pointer;color:var(--ink-soft);
+    letter-spacing:.08em;text-transform:uppercase;transition:all .15s ease;
+  }
+  .mini-btn:hover{background:var(--ink);color:#f3eee4;border-color:var(--ink)}
+  .mini-btn.active{background:var(--teal-deep);color:#f3eee4;border-color:var(--teal-deep)}
+
+  /* ===== TABLE ===== */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  thead th{
+    text-align:right;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    padding:10px 8px;border-bottom:1px solid var(--line-strong);
+  }
+  thead th:first-child,thead th:nth-child(2){text-align:left}
+  thead th.sortable{cursor:pointer;user-select:none}
+  thead th.sortable:hover{color:var(--teal)}
+  thead th.sortable::after{content:' ↕';opacity:.4;font-size:11px}
+  thead th.sort-asc::after{content:' ↑';opacity:1;color:var(--teal)}
+  thead th.sort-desc::after{content:' ↓';opacity:1;color:var(--teal)}
+  tbody td{padding:11px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;text-align:right;color:var(--ink-soft)}
+  tbody td:first-child{font-family:'Fraunces',serif;font-style:italic;font-size:14px;font-weight:500;color:var(--ink);text-align:left}
+  tbody td:nth-child(2){text-align:left;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+  tbody tr{cursor:pointer;transition:background .15s ease}
+  tbody tr:hover{background:rgba(15,95,92,.05)}
+  tbody td.profit{font-weight:600;color:var(--ink)}
+  tbody td.neg{color:var(--rust);font-weight:600}
+  .total-row td{border-top:2px solid var(--ink);border-bottom:none;background:rgba(15,95,92,.05);padding:14px 8px;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--ink);font-size:12px}
+  .total-row td:first-child{font-family:'Fraunces',serif;font-weight:600;font-style:normal;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  .fixed-row td{background:rgba(184,147,42,.07);color:var(--ink-soft);font-size:12px}
+  .fixed-row td:first-child{font-family:'Inter Tight';font-style:normal;font-weight:500;font-size:12px;color:var(--ochre)}
+  .margin-cell{font-weight:600;font-family:'JetBrains Mono',monospace}
+
+  /* expandable week detail */
+  .expand-row{display:none;background:#fffdf6 !important}
+  .expand-row.open{display:table-row}
+  .expand-row td{padding:16px 14px !important;border-bottom:1px solid var(--line) !important;cursor:default}
+  .week-detail{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .detail-block{padding:12px 14px;background:var(--bg-2);border-radius:8px;border:1px solid var(--line)}
+  .detail-block .lbl{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .detail-block .val{font-family:'Fraunces',serif;font-size:18px;font-weight:500;letter-spacing:-.02em;color:var(--ink);line-height:1.1}
+  .detail-block .sub{font-size:10.5px;color:var(--ink-soft);margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+  /* ===== DONUT + LEGEND ===== */
+  .donut-wrap{position:relative;height:220px;margin:8px 0}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+  .donut-center .num{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--ink);letter-spacing:-.02em}
+  .donut-center .lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:8px;font-size:12.5px}
+  .legend-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:7px;background:rgba(15,95,92,.04)}
+  .legend-left{display:flex;align-items:center;gap:10px}
+  .legend-swatch{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+  .legend-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px;color:var(--ink)}
+  .legend-pct{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin-left:6px}
+
+  .chart-wrap{position:relative;height:280px;margin-top:8px}
+
+  /* ===== TREND ===== */
+  .trend-card{margin-bottom:22px}
+  .trend-grid{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:stretch}
+  .trend-stats{display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding:16px 18px;background:var(--bg-2);border-radius:11px;border:1px solid var(--line)}
+  .stat-block{padding:9px 0;border-bottom:1px dashed var(--line)}
+  .stat-block:last-child{border-bottom:none}
+  .stat-block .lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+  .stat-block .num{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink);letter-spacing:-.02em;line-height:1.1}
+  .stat-block .sub{font-size:11px;color:var(--ink-soft);margin-top:3px}
+
+  /* ===== P&L ===== */
+  .pnl-table{font-size:13px}
+  .pnl-table td{padding:9px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .pnl-table td:first-child{color:var(--ink-soft)}
+  .pnl-table td:nth-child(2){text-align:right;font-family:'JetBrains Mono',monospace;font-weight:500}
+  .pnl-table td:nth-child(3){text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:70px}
+  .pnl-table td:nth-child(4){text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;width:80px}
+  .pnl-table .section-head td{padding-top:16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:600;border-bottom:1px solid var(--teal)}
+  .pnl-table .subline td:first-child{padding-left:18px;font-size:12.5px}
+  .pnl-table .subtotal td{font-weight:600;color:var(--ink);background:rgba(15,95,92,.04);border-bottom:1px solid var(--ink)}
+  .pnl-table .grand td{padding:14px 4px;font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--ink);border-top:2px solid var(--ink);border-bottom:none}
+  .pnl-table .grand td:nth-child(2){font-family:'Fraunces',serif;color:var(--moss)}
+  .pnl-table .grand.loss td:nth-child(2){color:var(--rust)}
+
+  /* ===== INSIGHTS ===== */
+  .insight-card{
+    background:linear-gradient(135deg, #073d3b 0%, #0f5f5c 100%);
+    color:#f3eee4;padding:28px 30px;border-radius:14px;box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .insight-card::before{content:'';position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border:1px solid rgba(255,255,255,.12);border-radius:50%}
+  .insight-card::after{content:'';position:absolute;right:-30px;bottom:-30px;width:160px;height:160px;border:1px solid rgba(255,255,255,.18);border-radius:50%}
+  .insight-card h2{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:22px;margin:0 0 4px;color:#f3eee4}
+  .insight-card .sub{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,238,228,.55);margin-bottom:20px}
+  .insights{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative;z-index:2}
+  .insight{padding:16px 18px;background:rgba(243,238,228,.07);border:1px solid rgba(243,238,228,.15);border-radius:10px;backdrop-filter:blur(6px)}
+  .insight .num{font-family:'Fraunces',serif;font-size:26px;font-weight:500;letter-spacing:-.02em;color:#fbf7ee;line-height:1;margin-bottom:6px}
+  .insight .lbl{font-size:12px;color:rgba(243,238,228,.85);line-height:1.4}
+  .insight.warn .num{color:#f0c267}
+  .insight.bad .num{color:#e89589}
+  .insight.good .num{color:#9ec77a}
+
+  /* ===== COMPARE VIEW ===== */
+  .compare-controls{display:flex;gap:12px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
+  .compare-controls select{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:500;padding:9px 14px;
+    background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--ink);
+    cursor:pointer;letter-spacing:.06em;
+  }
+  .compare-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:18px;margin-bottom:24px;align-items:stretch}
+  .compare-col{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow)}
+  .compare-col h3{font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:20px;margin:0 0 4px;color:var(--teal)}
+  .compare-col .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .compare-stat{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+  .compare-stat:last-child{border-bottom:none}
+  .compare-stat .l{color:var(--ink-soft);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.05em}
+  .compare-stat .v{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--ink)}
+  .vs-divider{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-style:italic;font-size:30px;color:var(--muted)}
+
+  .delta-table .delta-cell{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px}
+  .delta-up{color:var(--moss)}
+  .delta-down{color:var(--rust)}
+  .delta-flat{color:var(--muted)}
+
+  /* ===== DATA TABLE VIEW (all weeks) ===== */
+  .raw-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--line);background:transparent;cursor:pointer;letter-spacing:.06em;color:var(--ink-soft)}
+  .chip.active{background:var(--ochre);color:#fff;border-color:var(--ochre)}
+  .chip:hover:not(.active){border-color:var(--ink);color:var(--ink)}
+
+  /* ===== INSIGHTS PAGE ===== */
+  .insight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
+  .insight-tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px;box-shadow:var(--shadow)}
+  .insight-tile .tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .insight-tile h3{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:20px;margin:0 0 14px;color:var(--ink);letter-spacing:-.01em}
+  .insight-tile p{margin:0 0 10px;color:var(--ink-soft);font-size:13.5px;line-height:1.55}
+  .insight-tile .metric{font-family:'Fraunces',serif;font-size:34px;font-weight:500;color:var(--teal);letter-spacing:-.025em;line-height:1;margin:8px 0 6px}
+  .insight-tile .metric.warn{color:var(--ochre)}
+  .insight-tile .metric.bad{color:var(--rust)}
+  .insight-tile .metric.good{color:var(--moss)}
+
+  /* ===== ENTRY FORM ===== */
+  .entry-form{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 32px;box-shadow:var(--shadow);max-width:900px}
+  .form-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .field input,.field select{font-family:'Inter Tight';font-size:13.5px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:7px;color:var(--ink);outline:none;transition:border-color .15s}
+  .field input:focus,.field select:focus{border-color:var(--teal)}
+  .form-section{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin:20px 0 10px;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--teal)}
+  .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+  .calc-preview{background:var(--bg-2);padding:14px 18px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;margin-top:14px}
+  .calc-preview b{color:var(--ink);font-weight:600}
+
+  /* toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--teal-deep);color:#f3eee4;padding:14px 20px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:1000;opacity:0;transform:translateY(20px);transition:all .3s ease;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  /* drawer for KPI detail */
+  .drawer{position:fixed;top:0;right:-520px;width:500px;height:100vh;background:var(--card);border-left:1px solid var(--line-strong);box-shadow:-30px 0 60px rgba(0,0,0,.15);z-index:50;transition:right .35s cubic-bezier(.2,.7,.2,1);overflow-y:auto;padding:32px 36px}
+  .drawer.open{right:0}
+  .drawer-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;transition:all .15s}
+  .drawer-close:hover{background:var(--bg-2);color:var(--ink)}
+  .drawer h2{font-family:'Fraunces',serif;font-weight:500;font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  .drawer .drawer-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:22px}
+  .drawer-overlay{position:fixed;inset:0;background:rgba(27,42,42,.4);opacity:0;pointer-events:none;transition:opacity .3s;z-index:49}
+  .drawer-overlay.show{opacity:1;pointer-events:auto}
+
+  /* responsive */
+  @media (max-width:1180px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:relative;height:auto;flex-direction:row;align-items:center;padding:14px 18px;flex-wrap:wrap;gap:10px}
+    .sb-brand{border-bottom:none;padding-bottom:0;flex:1;min-width:240px}
+    .sb-section{display:none}
+    .sb-nav{flex-direction:row;flex:1;flex-wrap:wrap;gap:5px}
+    .sb-link{padding:7px 10px;font-size:11.5px}
+    .sb-link .badge{display:none}
+    .sb-footer{display:none}
+    .main{padding:22px 24px 50px}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .panels{grid-template-columns:1fr}
+    .trend-grid{grid-template-columns:1fr}
+    .insight-grid{grid-template-columns:1fr}
+    .compare-grid{grid-template-columns:1fr;gap:14px}
+    .vs-divider{padding:6px;font-size:20px}
+    .drawer{width:100%;right:-100%}
+    .week-detail{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:680px){
+    .main{padding:16px 14px}
+    .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+    .crumbs .h{font-size:24px}
+    .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .kpi{padding:14px 16px}
+    .kpi .val{font-size:24px}
+    .form-row{grid-template-columns:1fr}
+    .insights{grid-template-columns:1fr}
+  }
+
+  /* animate-in */
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .kpi,.card,.compare-col,.insight-tile{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+  .kpi:nth-child(2){animation-delay:.04s} .kpi:nth-child(3){animation-delay:.08s} .kpi:nth-child(4){animation-delay:.12s}
+  .kpi:nth-child(5){animation-delay:.16s} .kpi:nth-child(6){animation-delay:.20s} .kpi:nth-child(7){animation-delay:.24s} .kpi:nth-child(8){animation-delay:.28s}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="app">
+
+  <!-- ============== SIDEBAR ============== -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-crest">N</div>
+      <div>
+        <div class="sb-title">Nalam <em>Clinic</em></div>
+        <div class="sb-sub">Ops Console v3</div>
+      </div>
+    </div>
+
+    <div class="sb-section">Overview</div>
+    <nav class="sb-nav">
+      <div class="sb-link active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </div>
+      <div class="sb-link" data-view="weekly">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        All Weeks
+        <span class="badge" id="weekBadge">12</span>
+      </div>
+      <div class="sb-link" data-view="pnl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        P&amp;L Statement
+      </div>
+    </nav>
+
+    <div class="sb-section">Analytics</div>
+    <nav class="sb-nav">
+      <div class="sb-link" data-view="trend">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        12-Month Trend
+      </div>
+      <div class="sb-link" data-view="compare">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3L21 7L17 11"/><path d="M3 7H21"/><path d="M7 13L3 17L7 21"/><path d="M21 17H3"/></svg>
+        Compare Months
+      </div>
+      <div class="sb-link" data-view="insights">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Insights
+      </div>
+    </nav>
+
+    <div class="sb-section">Operations</div>
+    <nav class="sb-nav">
+      <div class="sb-link" data-view="fixed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Fixed Overheads
+      </div>
+      <div class="sb-link" data-view="entry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New Week Entry
+      </div>
+      <div class="sb-link" data-view="export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Data
+      </div>
+    </nav>
+
+    <div class="sb-footer">
+      MIS Reporting System v3<br>
+      FY 2026 · INR (₹)<br>
+      <span style="color:#7ec5c2">●</span> Live · 12 weeks
+    </div>
+  </aside>
+
+  <!-- ============== MAIN ============== -->
+  <main class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="crumbs">
+        <h1 class="h" id="viewTitle">Master <em>Dashboard</em></h1>
+        <span class="sub" id="viewSub">Operations overview</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="globalSearch" placeholder="Search week, amount…" />
+        </div>
+        <button class="btn" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+        <button class="btn primary" onclick="exportCSV()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter bar (visible on most views) -->
+    <div class="filterbar" id="filterbar">
+      <div class="filterbar-left">
+        <span class="pill-label">Reporting Month</span>
+        <div class="month-tabs" id="monthTabs"></div>
+      </div>
+      <div class="filterbar-right">
+        <span class="live-dot"></span>
+        <span id="dataStatus">3 months active · 12 weeks recorded</span>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD VIEW ===== -->
+    <section class="view active" data-view="dashboard">
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="panels">
+        <div class="card">
+          <div class="card-head">
+            <h2>Weekly Breakdown</h2>
+            <span class="tag" id="weeklyTag">— select month —</span>
+            <div class="toolset">
+              <button class="mini-btn" onclick="exportCSV('weekly')">↓ CSV</button>
+            </div>
+          </div>
+          <table id="weeklyTable">
+            <thead>
+              <tr>
+                <th>Week</th><th>Date Range</th><th>Patients</th>
+                <th>Reception</th><th>Pharmacy</th><th>Total Sale</th>
+                <th>Total Exp</th><th>Net Profit</th><th>Margin %</th>
+              </tr>
+            </thead>
+            <tbody id="weeklyBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Payment Mode</h2>
+            <span class="tag">Cash vs Digital</span>
+          </div>
+          <div class="donut-wrap">
+            <canvas id="paymentDonut"></canvas>
+            <div class="donut-center">
+              <div class="num" id="donutTotal">—</div>
+              <div class="lbl">Total Collected</div>
+            </div>
+          </div>
+          <div class="legend" id="paymentLegend"></div>
+        </div>
+      </div>
+
+      <div class="card trend-card">
+        <div class="card-head">
+          <h2>12-Month Trend</h2>
+          <span class="tag">FY 2026 · Rolling View</span>
+        </div>
+        <div class="trend-grid">
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+          <div class="trend-stats" id="trendStats"></div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <h2>Operational Read</h2>
+        <div class="sub">Key signals from the current period</div>
+        <div class="insights" id="insightsBox"></div>
+      </div>
+    </section>
+
+    <!-- ===== ALL WEEKS VIEW ===== -->
+    <section class="view" data-view="weekly">
+      <div class="card">
+        <div class="card-head">
+          <h2>All Weeks — Detail Ledger</h2>
+          <span class="tag" id="rawCount">— records —</span>
+          <div class="toolset">
+            <button class="mini-btn" onclick="exportCSV('all')">↓ CSV</button>
+          </div>
+        </div>
+        <div class="raw-toolbar">
+          <div class="filter-chips" id="monthChips"></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)" id="rawFooter"></div>
+        </div>
+        <table id="rawTable">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Date Range</th>
+              <th class="sortable" data-sort="pt">Patients</th>
+              <th class="sortable" data-sort="rec">Reception</th>
+              <th class="sortable" data-sort="ph">Pharmacy</th>
+              <th class="sortable" data-sort="sale">Sale</th>
+              <th class="sortable" data-sort="exp">Expense</th>
+              <th class="sortable" data-sort="profit">Profit</th>
+              <th class="sortable" data-sort="margin">Margin</th>
+            </tr>
+          </thead>
+          <tbody id="rawBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== P&L VIEW ===== -->
+    <section class="view" data-view="pnl">
+      <div class="card" style="margin-bottom:22px">
+        <div class="card-head">
+          <h2>Profit &amp; Loss Statement</h2>
+          <span class="tag" id="pnlTag">— select month —</span>
+        </div>
+        <table class="pnl-table" id="pnlTable"></table>
+      </div>
+
+      <div class="panels">
+        <div class="card">
+          <div class="card-head">
+            <h2>Cost Structure</h2>
+            <span class="tag">Where money goes</span>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="costBreakdown"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Revenue Mix</h2>
+            <span class="tag">By segment</span>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="revenueMix"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TREND VIEW ===== -->
+    <section class="view" data-view="trend">
+      <div class="card" style="margin-bottom:22px">
+        <div class="card-head">
+          <h2>Revenue · Expense · Profit Trend</h2>
+          <span class="tag">12 months</span>
+        </div>
+        <div class="chart-wrap" style="height:340px"><canvas id="bigTrend"></canvas></div>
+      </div>
+
+      <div class="panels">
+        <div class="card">
+          <div class="card-head">
+            <h2>Patient Footfall</h2>
+            <span class="tag">Monthly volume</span>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="patientTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Margin Trajectory</h2>
+            <span class="tag">% per month</span>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="marginTrend"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== COMPARE VIEW ===== -->
+    <section class="view" data-view="compare">
+      <div class="compare-controls">
+        <span class="pill-label">Compare</span>
+        <select id="cmpA"></select>
+        <span class="vs-divider" style="font-size:18px">vs</span>
+        <select id="cmpB"></select>
+      </div>
+
+      <div class="compare-grid" id="compareGrid"></div>
+
+      <div class="card" style="margin-top:22px">
+        <div class="card-head">
+          <h2>Variance Table</h2>
+          <span class="tag">A → B difference</span>
+        </div>
+        <table class="delta-table" id="varianceTable"></table>
+      </div>
+    </section>
+
+    <!-- ===== INSIGHTS VIEW ===== -->
+    <section class="view" data-view="insights">
+      <div class="insight-grid" id="insightTiles"></div>
+    </section>
+
+    <!-- ===== FIXED OVERHEADS VIEW ===== -->
+    <section class="view" data-view="fixed">
+      <div class="panels">
+        <div class="card">
+          <div class="card-head">
+            <h2>Fixed Overheads — Current Month</h2>
+            <span class="tag" id="fixedTag">—</span>
+          </div>
+          <div class="chart-wrap" style="height:280px"><canvas id="fixedChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Breakdown</h2>
+            <span class="tag">Monthly recurring</span>
+          </div>
+          <table class="pnl-table" id="fixedTable"></table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <div class="card-head">
+          <h2>Fixed Cost — Multi-Month View</h2>
+          <span class="tag">Salary · Rent · EB · Other</span>
+        </div>
+        <div class="chart-wrap" style="height:260px"><canvas id="fixedMulti"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ===== ENTRY VIEW ===== -->
+    <section class="view" data-view="entry">
+      <div class="entry-form">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <h2 style="font-family:'Fraunces',serif;font-weight:500;font-style:italic;font-size:22px;margin:0;color:var(--ink)">Add Week Entry</h2>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase">Session preview</span>
+        </div>
+        <p style="color:var(--ink-soft);font-size:13px;margin:0 0 18px">Entries here update the current session only — values are not persisted. Use this to model what a new week would do to your numbers, then enter the real row in the source workbook.</p>
+
+        <div class="form-section">Period</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Week #</label>
+            <input type="number" id="f_wk" min="1" max="5" value="1" />
+          </div>
+          <div class="field">
+            <label>Date Range</label>
+            <input type="text" id="f_range" placeholder="e.g. 10/05/26 — 16/05/26" />
+          </div>
+          <div class="field">
+            <label>Month Tag</label>
+            <select id="f_month"></select>
+          </div>
+        </div>
+
+        <div class="form-section">Sales</div>
+        <div class="form-row">
+          <div class="field">
+            <label>No. of Patients</label>
+            <input type="number" id="f_pt" value="0" />
+          </div>
+          <div class="field">
+            <label>Reception Total Sale ₹</label>
+            <input type="number" id="f_rec" value="0" />
+          </div>
+          <div class="field">
+            <label>Pharmacy Total Sale ₹</label>
+            <input type="number" id="f_ph" value="0" />
+          </div>
+        </div>
+
+        <div class="form-section">Expense</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Pharmacy Expense ₹</label>
+            <input type="number" id="f_phExp" value="0" />
+          </div>
+          <div class="field">
+            <label>Reception Expense ₹</label>
+            <input type="number" id="f_recExp" value="0" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding-top:10px">Variable only — fixed costs are monthly</div>
+          </div>
+        </div>
+
+        <div class="form-section">Payment Mode</div>
+        <div class="form-row">
+          <div class="field">
+            <label>GPay ₹</label>
+            <input type="number" id="f_gpay" value="0" />
+          </div>
+          <div class="field">
+            <label>Cash ₹</label>
+            <input type="number" id="f_cash" value="0" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);padding-top:10px">Total in Hand = GPay + Cash</div>
+          </div>
+        </div>
+
+        <div class="calc-preview">
+          <span>Total Sale: <b id="p_sale">₹0</b></span>
+          <span>Total Expense: <b id="p_exp">₹0</b></span>
+          <span>Net Profit: <b id="p_np">₹0</b></span>
+          <span>Margin: <b id="p_mg">0.0%</b></span>
+          <span>In Hand: <b id="p_ih">₹0</b></span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" onclick="resetEntry()">Reset</button>
+          <button class="btn primary" onclick="addWeek()">+ Add to Current Session</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EXPORT VIEW ===== -->
+    <section class="view" data-view="export">
+      <div class="card" style="max-width:780px">
+        <div class="card-head">
+          <h2>Export &amp; Share</h2>
+          <span class="tag">CSV · Print</span>
+        </div>
+        <p style="color:var(--ink-soft);font-size:13.5px;margin:0 0 20px">Download specific datasets as CSV for further analysis, or print the current view as a PDF-ready report.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <button class="btn" style="justify-content:center;padding:18px" onclick="exportCSV('all')">
+            ↓ All Weeks (12 records)
+          </button>
+          <button class="btn" style="justify-content:center;padding:18px" onclick="exportCSV('current')">
+            ↓ Current Month
+          </button>
+          <button class="btn" style="justify-content:center;padding:18px" onclick="exportCSV('monthly')">
+            ↓ Monthly Summary
+          </button>
+          <button class="btn" style="justify-content:center;padding:18px" onclick="exportCSV('pnl')">
+            ↓ P&amp;L Statement
+          </button>
+          <button class="btn" style="justify-content:center;padding:18px" onclick="exportCSV('fixed')">
+            ↓ Fixed Overheads
+          </button>
+          <button class="btn primary" style="justify-content:center;padding:18px" onclick="window.print()">
+            🖨 Print Current View
+          </button>
+        </div>
+
+        <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);line-height:1.7">
+          <div><b style="color:var(--ink)">TIP —</b> Print to PDF for management distribution. Each view prints separately.</div>
+          <div><b style="color:var(--ink)">SOURCE —</b> Data mirrors Master Workbook v3 · Sheet: WEEKLY + FIXED EXPENSES.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Side drawer for KPI drilldown -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <div id="drawerBody"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">Saved</div>
+
+<script>
+/* =====================================================
+   NALAM CLINIC DATA  (from Master Workbook v3)
+   ===================================================== */
+const DATA = {
+  months: ['JAN 26','FEB 26','MAR 26','APR 26','MAY 26','JUN 26','JUL 26','AUG 26','SEP 26','OCT 26','NOV 26','DEC 26'],
+  active: ['MAR 26','APR 26','MAY 26'],
+  weekly: {
+    'MAR 26':[
+      {wk:'Week 1', range:'01/03/26 — 07/03/26', pt:172, rec:32825, ph:63673, phExp:10888, recExp:2400, gpay:23109, cash:60101},
+      {wk:'Week 2', range:'08/03/26 — 14/03/26', pt:140, rec:22900, ph:58208, phExp:12024, recExp:1500, gpay:26796, cash:40788},
+      {wk:'Week 3', range:'15/03/26 — 21/03/26', pt:131, rec:25655, ph:48915, phExp:7793,  recExp:9500, gpay:27629, cash:29648},
+      {wk:'Week 4', range:'22/03/26 — 28/03/26', pt:160, rec:32340, ph:56050, phExp:7714,  recExp:5600, gpay:26515, cash:48561},
+      {wk:'Week 5', range:'29/03/26 — 31/03/26', pt:64,  rec:12000, ph:25651, phExp:48162, recExp:1000, gpay:-5755.5, cash:-5755.5}
+    ],
+    'APR 26':[
+      {wk:'Week 1', range:'01/04/26 — 04/04/26', pt:98,  rec:18755, ph:37904, phExp:8015,  recExp:1000, gpay:15390, cash:51381},
+      {wk:'Week 2', range:'05/04/26 — 11/04/26', pt:135, rec:27275, ph:52573, phExp:10469, recExp:10550,gpay:33895, cash:24934},
+      {wk:'Week 3', range:'12/04/26 — 18/04/26', pt:132, rec:24310, ph:52069, phExp:8698,  recExp:10700,gpay:30370, cash:26431},
+      {wk:'Week 4', range:'19/04/26 — 25/04/26', pt:145, rec:27925, ph:49657, phExp:11118, recExp:300,  gpay:16977, cash:49187},
+      {wk:'Week 5', range:'26/04/26 — 30/04/26', pt:88,  rec:15820, ph:33008, phExp:63537, recExp:0,    gpay:-7354.5,cash:-7354.5}
+    ],
+    'MAY 26':[
+      {wk:'Week 1', range:'01/05/26 — 02/05/26', pt:43,  rec:6830,  ph:15368, phExp:8489, recExp:0,  gpay:0,    cash:0},
+      {wk:'Week 2', range:'03/05/26 — 09/05/26', pt:112, rec:21950, ph:53463, phExp:6883, recExp:0,  gpay:22980, cash:45550}
+    ]
+  },
+  fixed: {
+    'MAR 26':{ rent:20000, eb:9100,  salary:168745, maint:0, medical:0, transfer:0, other:0 },
+    'APR 26':{ rent:20000, eb:0,     salary:190535, maint:0, medical:0, transfer:0, other:0 },
+    'MAY 26':{ rent:0,     eb:0,     salary:0,      maint:0, medical:0, transfer:0, other:0 }
+  }
+};
+
+/* ===== helpers ===== */
+const fmt = n => {
+  if (n === null || n === undefined || isNaN(n)) return '0';
+  const abs = Math.abs(n);
+  if (abs >= 1e7) return (n/1e7).toFixed(2)+' Cr';
+  if (abs >= 1e5) return (n/1e5).toFixed(2)+' L';
+  return Math.round(n).toLocaleString('en-IN');
+};
+const fmtFull = n => Math.round(n).toLocaleString('en-IN');
+const pct = (x, total) => total ? ((x/total)*100).toFixed(1)+'%' : '0%';
+
+function aggregateMonth(month){
+  const weeks = DATA.weekly[month] || [];
+  const fx = DATA.fixed[month] || {rent:0,eb:0,salary:0,maint:0,medical:0,transfer:0,other:0};
+  const tot = weeks.reduce((a,w)=>{
+    a.pt += w.pt; a.rec += w.rec; a.ph += w.ph;
+    a.phExp += w.phExp; a.recExp += w.recExp;
+    a.gpay += w.gpay; a.cash += w.cash;
+    return a;
+  },{pt:0,rec:0,ph:0,phExp:0,recExp:0,gpay:0,cash:0});
+  const fixed = fx.rent+fx.eb+fx.salary+fx.maint+fx.medical+fx.transfer+fx.other;
+  tot.totalSale = tot.rec + tot.ph;
+  tot.variable = tot.phExp + tot.recExp;
+  tot.fixed = fixed;
+  tot.totalExp = tot.variable + fixed;
+  tot.netProfit = tot.totalSale - tot.totalExp;
+  tot.margin = tot.totalSale ? (tot.netProfit/tot.totalSale) : 0;
+  tot.avgPerPt = tot.pt ? tot.totalSale/tot.pt : 0;
+  tot.fx = fx;
+  tot.weeks = weeks;
+  return tot;
+}
+
+/* ===== state ===== */
+let currentMonth = 'MAR 26';
+let currentView = 'dashboard';
+let rawSort = {key:null, dir:'desc'};
+let rawMonthFilter = 'ALL';
+
+/* destroy registry */
+const charts = {};
+function chart(id, cfg){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), cfg);
+  return charts[id];
+}
+
+/* ===== month tabs ===== */
+function buildTabs(){
+  const root = document.getElementById('monthTabs');
+  root.innerHTML = DATA.months.map(m=>{
+    const active = m===currentMonth ? 'active':'';
+    const disabled = DATA.active.includes(m) ? '' : 'disabled';
+    return `<button class="month-btn ${active} ${disabled}" data-m="${m}">${m}</button>`;
+  }).join('');
+  root.querySelectorAll('.month-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      if(b.classList.contains('disabled')) return;
+      currentMonth = b.dataset.m;
+      buildTabs(); renderAll();
+    });
+  });
+}
+
+/* ===== KPI cards ===== */
+function renderKPIs(){
+  const m = aggregateMonth(currentMonth);
+  const prev = (()=>{
+    const i = DATA.months.indexOf(currentMonth);
+    if(i<=0) return null;
+    const p = DATA.months[i-1];
+    return DATA.active.includes(p) ? aggregateMonth(p) : null;
+  })();
+  const delta = (cur, p) => {
+    if(!prev || p===undefined || p===null) return {cls:'flat', txt:'—'};
+    if(p===0) return {cls:'flat', txt:'—'};
+    const d = ((cur-p)/Math.abs(p))*100;
+    if(Math.abs(d)<0.5) return {cls:'flat', txt:'≈ 0%'};
+    return {cls: d>=0?'up':'down', txt:(d>=0?'+':'')+d.toFixed(1)+'%'};
+  };
+  const cards = [
+    {cls:'revenue', key:'sale', lbl:'Total Sale', val:m.totalSale, foot:'Reception + Pharmacy', cur:true, d:delta(m.totalSale, prev?.totalSale)},
+    {cls:'expense', key:'exp',  lbl:'Total Expense', val:m.totalExp, foot:'Variable + Fixed', cur:true, d:delta(m.totalExp, prev?.totalExp)},
+    {cls:'profit',  key:'profit', lbl:'Net Profit', val:m.netProfit, foot:'Sale − Expense', cur:true, d:delta(m.netProfit, prev?.netProfit)},
+    {cls:'patients',key:'pt',  lbl:'Total Patients', val:m.pt, foot:'Footfall this month', cur:false, d:delta(m.pt, prev?.pt)},
+    {cls:'avg',     key:'avg', lbl:'Avg / Patient', val:Math.round(m.avgPerPt), foot:'Revenue per visit', cur:true, d:delta(m.avgPerPt, prev?.avgPerPt)},
+    {cls:'margin',  key:'margin', lbl:'Profit Margin', val:(m.margin*100).toFixed(1)+'%', foot:'Net / Sale', cur:false, raw:true, d:{cls:m.margin>=0?'up':'down', txt:m.margin>=0?'positive':'negative'}},
+    {cls:'gpay',    key:'gpay', lbl:'GPay Collected', val:m.gpay, foot:'Digital share '+pct(m.gpay,m.gpay+m.cash), cur:true, d:delta(m.gpay, prev?.gpay)},
+    {cls:'cash',    key:'cash', lbl:'Cash in Hand', val:m.cash, foot:'Cash share '+pct(m.cash,m.gpay+m.cash), cur:true, d:delta(m.cash, prev?.cash)}
+  ];
+  document.getElementById('kpiGrid').innerHTML = cards.map(c=>`
+    <div class="kpi ${c.cls}" data-kpi="${c.key}">
+      <div class="lbl"><span class="dot"></span>${c.lbl}</div>
+      <div class="val">${c.cur?'<span class="currency">₹</span>':''}${c.raw?c.val:fmt(c.val)}</div>
+      <div class="foot">
+        <span>${c.foot}</span>
+        <span class="delta ${c.d.cls}">${c.d.txt}</span>
+      </div>
+    </div>
+  `).join('');
+  // attach drilldown
+  document.querySelectorAll('.kpi[data-kpi]').forEach(el=>{
+    el.addEventListener('click',()=>openDrawer(el.dataset.kpi));
+  });
+}
+
+/* ===== Weekly table ===== */
+function renderWeekly(){
+  const m = aggregateMonth(currentMonth);
+  document.getElementById('weeklyTag').textContent = currentMonth + ' · ' + m.weeks.length + ' weeks';
+  const rows = m.weeks.map((w,i)=>{
+    const sale = w.rec + w.ph;
+    const exp = w.phExp + w.recExp;
+    const profit = sale - exp;
+    const margin = sale ? profit/sale : 0;
+    const detail = `<tr class="expand-row" id="exp-${i}">
+      <td colspan="9">
+        <div class="week-detail">
+          <div class="detail-block"><div class="lbl">Reception Sale</div><div class="val">₹${fmtFull(w.rec)}</div><div class="sub">${pct(w.rec,sale)} of week</div></div>
+          <div class="detail-block"><div class="lbl">Pharmacy Sale</div><div class="val">₹${fmtFull(w.ph)}</div><div class="sub">${pct(w.ph,sale)} of week</div></div>
+          <div class="detail-block"><div class="lbl">Pharmacy Exp</div><div class="val">₹${fmtFull(w.phExp)}</div><div class="sub">${pct(w.phExp,exp)} of expense</div></div>
+          <div class="detail-block"><div class="lbl">Reception Exp</div><div class="val">₹${fmtFull(w.recExp)}</div><div class="sub">${pct(w.recExp,exp)} of expense</div></div>
+          <div class="detail-block"><div class="lbl">GPay</div><div class="val">₹${fmtFull(w.gpay)}</div><div class="sub">Digital</div></div>
+          <div class="detail-block"><div class="lbl">Cash</div><div class="val">₹${fmtFull(w.cash)}</div><div class="sub">Physical</div></div>
+          <div class="detail-block"><div class="lbl">Per-Patient Avg</div><div class="val">₹${w.pt?fmtFull(Math.round(sale/w.pt)):'0'}</div><div class="sub">${w.pt} patients</div></div>
+          <div class="detail-block"><div class="lbl">Variable Cost / Sale</div><div class="val">${pct(exp,sale)}</div><div class="sub">excl. fixed</div></div>
+        </div>
+      </td>
+    </tr>`;
+    return `<tr onclick="toggleExpand(${i})">
+      <td>${w.wk}</td>
+      <td>${w.range}</td>
+      <td>${w.pt}</td>
+      <td>${fmtFull(w.rec)}</td>
+      <td>${fmtFull(w.ph)}</td>
+      <td>${fmtFull(sale)}</td>
+      <td>${fmtFull(exp)}</td>
+      <td class="profit ${profit<0?'neg':''}">${fmtFull(profit)}</td>
+      <td class="margin-cell" style="color:${marginColor(margin)}">${(margin*100).toFixed(1)}%</td>
+    </tr>${detail}`;
+  }).join('');
+
+  const fixedRow = m.fixed ? `<tr class="fixed-row">
+    <td>+ Fixed Overheads</td><td>Rent · EB · Salary · etc.</td>
+    <td>—</td><td>—</td><td>—</td><td>—</td>
+    <td>${fmtFull(m.fixed)}</td>
+    <td class="${m.fixed?'neg':''}">−${fmtFull(m.fixed)}</td>
+    <td>—</td>
+  </tr>` : '';
+
+  const total = `<tr class="total-row">
+    <td>${currentMonth}</td><td>Month Total</td>
+    <td>${m.pt}</td><td>${fmtFull(m.rec)}</td><td>${fmtFull(m.ph)}</td>
+    <td>${fmtFull(m.totalSale)}</td><td>${fmtFull(m.totalExp)}</td>
+    <td class="${m.netProfit<0?'neg':''}">${fmtFull(m.netProfit)}</td>
+    <td style="color:${marginColor(m.margin)}">${(m.margin*100).toFixed(1)}%</td>
+  </tr>`;
+
+  document.getElementById('weeklyBody').innerHTML = rows + fixedRow + total;
+}
+function toggleExpand(i){
+  const r = document.getElementById('exp-'+i);
+  if(r) r.classList.toggle('open');
+}
+function marginColor(m){
+  if(m<0) return '#a4341c';
+  if(m<0.10) return '#c2731a';
+  if(m<0.40) return '#b8932a';
+  return '#5e7a3a';
+}
+
+/* ===== Payment donut ===== */
+function renderPayment(){
+  const m = aggregateMonth(currentMonth);
+  const total = m.gpay + m.cash;
+  document.getElementById('donutTotal').textContent = '₹'+fmt(total);
+  const data = [
+    {lbl:'GPay (Digital)', val:Math.max(0,m.gpay), col:'#0f5f5c'},
+    {lbl:'Cash in Hand',   val:Math.max(0,m.cash), col:'#c2731a'}
+  ];
+  chart('paymentDonut',{
+    type:'doughnut',
+    data:{labels:data.map(d=>d.lbl), datasets:[{
+      data:data.map(d=>d.val),
+      backgroundColor:data.map(d=>d.col),
+      borderColor:'#fbf7ee', borderWidth:3, cutout:'72%'
+    }]},
+    options:{
+      plugins:{legend:{display:false}, tooltip:{backgroundColor:'#1b2a2a',padding:10,titleFont:{family:'JetBrains Mono',size:11},bodyFont:{family:'Inter Tight',size:12},callbacks:{label:c=>'₹'+fmtFull(c.parsed)}}},
+      animation:{duration:700, easing:'easeOutQuart'}
+    }
+  });
+  const totalAbs = data.reduce((a,d)=>a+d.val,0) || 1;
+  document.getElementById('paymentLegend').innerHTML = data.map(d=>`
+    <div class="legend-row">
+      <div class="legend-left"><span class="legend-swatch" style="background:${d.col}"></span><span>${d.lbl}</span></div>
+      <div><span class="legend-val">₹${fmtFull(d.val)}</span><span class="legend-pct">${((d.val/totalAbs)*100).toFixed(1)}%</span></div>
+    </div>
+  `).join('');
+}
+
+/* ===== Trend chart ===== */
+function renderTrend(){
+  const labels = DATA.months;
+  const sales=[], exp=[], profit=[];
+  labels.forEach(m=>{
+    if(DATA.active.includes(m)){
+      const a = aggregateMonth(m);
+      sales.push(a.totalSale); exp.push(a.totalExp); profit.push(a.netProfit);
+    } else { sales.push(null); exp.push(null); profit.push(null); }
+  });
+  chart('trendChart',{
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Total Sale', data:sales, backgroundColor:'#0f5f5c', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:2},
+      {label:'Total Expense', data:exp, backgroundColor:'#c2731a', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:3},
+      {label:'Net Profit', data:profit, type:'line', borderColor:'#5e7a3a', backgroundColor:'#5e7a3a', tension:.35, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#fbf7ee', pointBorderWidth:2.5, borderWidth:2.5, order:1, spanGaps:true}
+    ]},
+    options:{
+      maintainAspectRatio:false, responsive:true,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{font:{family:'JetBrains Mono', size:10.5}, color:'#3a4949', padding:14, usePointStyle:true, pointStyle:'rect'}},
+        tooltip:{backgroundColor:'#1b2a2a',padding:12,titleFont:{family:'JetBrains Mono',size:11,weight:'600'},bodyFont:{family:'Inter Tight',size:12.5},callbacks:{label:c=>` ${c.dataset.label}: ₹${fmtFull(c.parsed.y||0)}`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a'}},
+        y:{grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a',callback:v=>'₹'+fmt(v)}}
+      }
+    }
+  });
+
+  const tot = DATA.active.reduce((a,m)=>{
+    const x = aggregateMonth(m);
+    a.sale+=x.totalSale; a.exp+=x.totalExp; a.profit+=x.netProfit; a.pt+=x.pt;
+    return a;
+  },{sale:0,exp:0,profit:0,pt:0});
+  const best = [...DATA.active].sort((a,b)=>aggregateMonth(b).netProfit-aggregateMonth(a).netProfit)[0];
+  const margin = tot.sale ? (tot.profit/tot.sale*100).toFixed(1) : '0';
+  document.getElementById('trendStats').innerHTML = `
+    <div class="stat-block"><div class="lbl">YTD Revenue</div><div class="num">₹${fmt(tot.sale)}</div><div class="sub">${DATA.active.length} months · ${tot.pt} patients</div></div>
+    <div class="stat-block"><div class="lbl">YTD Net Profit</div><div class="num" style="color:${tot.profit>=0?'#5e7a3a':'#a4341c'}">₹${fmt(tot.profit)}</div><div class="sub">${margin}% blended margin</div></div>
+    <div class="stat-block"><div class="lbl">Best Month</div><div class="num">${best}</div><div class="sub">₹${fmt(aggregateMonth(best).netProfit)} net profit</div></div>
+    <div class="stat-block"><div class="lbl">Avg Patient Value</div><div class="num">₹${fmt(Math.round(tot.sale/tot.pt))}</div><div class="sub">Across reporting period</div></div>
+  `;
+}
+
+/* ===== P&L ===== */
+function renderPNL(){
+  const m = aggregateMonth(currentMonth);
+  document.getElementById('pnlTag').textContent = currentMonth + ' · INR';
+  const t = m.totalSale || 1;
+  const isLoss = m.netProfit < 0;
+
+  // Comparison column (prior month)
+  const idx = DATA.months.indexOf(currentMonth);
+  const pm = idx>0 && DATA.active.includes(DATA.months[idx-1]) ? aggregateMonth(DATA.months[idx-1]) : null;
+  const cmp = (cur, prev) => {
+    if(!pm) return '—';
+    if(!prev || prev===0) return '—';
+    const d = ((cur-prev)/Math.abs(prev))*100;
+    return `<span class="${d>=0?'delta-up':'delta-down'}">${d>=0?'+':''}${d.toFixed(1)}%</span>`;
+  };
+
+  document.getElementById('pnlTable').innerHTML = `
+    <thead><tr style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase">
+      <th style="text-align:left;padding:8px 4px;border-bottom:1px solid var(--line-strong)">Line Item</th>
+      <th style="text-align:right;padding:8px 4px;border-bottom:1px solid var(--line-strong)">Amount</th>
+      <th style="text-align:right;padding:8px 4px;border-bottom:1px solid var(--line-strong)">% Rev</th>
+      <th style="text-align:right;padding:8px 4px;border-bottom:1px solid var(--line-strong)">vs Prev</th>
+    </tr></thead>
+    <tr class="section-head"><td colspan="4">Revenue</td></tr>
+    <tr class="subline"><td>Reception Sales</td><td>₹${fmtFull(m.rec)}</td><td>${pct(m.rec,t)}</td><td>${cmp(m.rec, pm?.rec)}</td></tr>
+    <tr class="subline"><td>Pharmacy Sales</td><td>₹${fmtFull(m.ph)}</td><td>${pct(m.ph,t)}</td><td>${cmp(m.ph, pm?.ph)}</td></tr>
+    <tr class="subtotal"><td>Total Revenue</td><td>₹${fmtFull(m.totalSale)}</td><td>100.0%</td><td>${cmp(m.totalSale, pm?.totalSale)}</td></tr>
+
+    <tr class="section-head"><td colspan="4">Variable Expenses</td></tr>
+    <tr class="subline"><td>Pharmacy Expense</td><td>₹${fmtFull(m.phExp)}</td><td>${pct(m.phExp,t)}</td><td>${cmp(m.phExp, pm?.phExp)}</td></tr>
+    <tr class="subline"><td>Reception Expense</td><td>₹${fmtFull(m.recExp)}</td><td>${pct(m.recExp,t)}</td><td>${cmp(m.recExp, pm?.recExp)}</td></tr>
+    <tr class="subtotal"><td>Total Variable</td><td>₹${fmtFull(m.variable)}</td><td>${pct(m.variable,t)}</td><td>${cmp(m.variable, pm?.variable)}</td></tr>
+
+    <tr class="section-head"><td colspan="4">Fixed Overheads</td></tr>
+    <tr class="subline"><td>Rent</td><td>₹${fmtFull(m.fx.rent)}</td><td>${pct(m.fx.rent,t)}</td><td>${cmp(m.fx.rent, pm?.fx.rent)}</td></tr>
+    <tr class="subline"><td>Electricity (EB)</td><td>₹${fmtFull(m.fx.eb)}</td><td>${pct(m.fx.eb,t)}</td><td>${cmp(m.fx.eb, pm?.fx.eb)}</td></tr>
+    <tr class="subline"><td>Salary</td><td>₹${fmtFull(m.fx.salary)}</td><td>${pct(m.fx.salary,t)}</td><td>${cmp(m.fx.salary, pm?.fx.salary)}</td></tr>
+    <tr class="subline"><td>Maintenance · Medical · Other</td><td>₹${fmtFull(m.fx.maint+m.fx.medical+m.fx.transfer+m.fx.other)}</td><td>${pct(m.fx.maint+m.fx.medical+m.fx.transfer+m.fx.other,t)}</td><td>—</td></tr>
+    <tr class="subtotal"><td>Total Fixed</td><td>₹${fmtFull(m.fixed)}</td><td>${pct(m.fixed,t)}</td><td>${cmp(m.fixed, pm?.fixed)}</td></tr>
+
+    <tr class="grand ${isLoss?'loss':''}"><td>${isLoss?'Net Loss':'Net Profit'}</td><td>₹${fmtFull(m.netProfit)}</td><td>${(m.margin*100).toFixed(1)}%</td><td>${cmp(m.netProfit, pm?.netProfit)}</td></tr>
+  `;
+
+  // Cost breakdown chart
+  const costs = [
+    {lbl:'Pharmacy Exp', val:m.phExp, col:'#c2731a'},
+    {lbl:'Reception Exp', val:m.recExp, col:'#a4341c'},
+    {lbl:'Salary', val:m.fx.salary, col:'#073d3b'},
+    {lbl:'Rent', val:m.fx.rent, col:'#0f5f5c'},
+    {lbl:'EB', val:m.fx.eb, col:'#b8932a'},
+    {lbl:'Other Fixed', val:m.fx.maint+m.fx.medical+m.fx.transfer+m.fx.other, col:'#7e8a8a'}
+  ].filter(c=>c.val>0);
+  if(costs.length>0){
+    chart('costBreakdown',{
+      type:'doughnut',
+      data:{labels:costs.map(c=>c.lbl), datasets:[{data:costs.map(c=>c.val), backgroundColor:costs.map(c=>c.col), borderColor:'#fbf7ee', borderWidth:2}]},
+      options:{maintainAspectRatio:false, plugins:{
+        legend:{position:'right', labels:{font:{family:'JetBrains Mono',size:10.5},color:'#3a4949',boxWidth:11,boxHeight:11,padding:10}},
+        tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>` ${c.label}: ₹${fmtFull(c.parsed)} (${pct(c.parsed, costs.reduce((a,c)=>a+c.val,0))})`}}
+      }}
+    });
+  }
+  // Revenue mix
+  const rev = [
+    {lbl:'Reception', val:m.rec, col:'#0f5f5c'},
+    {lbl:'Pharmacy', val:m.ph, col:'#c2731a'}
+  ];
+  chart('revenueMix',{
+    type:'doughnut',
+    data:{labels:rev.map(r=>r.lbl), datasets:[{data:rev.map(r=>r.val), backgroundColor:rev.map(r=>r.col), borderColor:'#fbf7ee', borderWidth:3}]},
+    options:{maintainAspectRatio:false, plugins:{
+      legend:{position:'right', labels:{font:{family:'JetBrains Mono',size:11},color:'#3a4949',boxWidth:11,boxHeight:11,padding:12}},
+      tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>` ${c.label}: ₹${fmtFull(c.parsed)} (${pct(c.parsed, m.totalSale)})`}}
+    }}
+  });
+}
+
+/* ===== Trend view (bigger) ===== */
+function renderBigTrend(){
+  const labels = DATA.months;
+  const sales=[], exp=[], profit=[], pts=[], margins=[];
+  labels.forEach(m=>{
+    if(DATA.active.includes(m)){
+      const a = aggregateMonth(m);
+      sales.push(a.totalSale); exp.push(a.totalExp); profit.push(a.netProfit);
+      pts.push(a.pt); margins.push(+(a.margin*100).toFixed(1));
+    } else { sales.push(null); exp.push(null); profit.push(null); pts.push(null); margins.push(null); }
+  });
+  chart('bigTrend',{
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Total Sale', data:sales, backgroundColor:'#0f5f5c', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:2},
+      {label:'Total Expense', data:exp, backgroundColor:'#c2731a', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:3},
+      {label:'Net Profit', data:profit, type:'line', borderColor:'#5e7a3a', backgroundColor:'#5e7a3a', tension:.35, pointRadius:6, pointHoverRadius:8, pointBackgroundColor:'#fbf7ee', pointBorderWidth:2.5, borderWidth:3, order:1, spanGaps:true, fill:false}
+    ]},
+    options:{
+      maintainAspectRatio:false, responsive:true, interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{font:{family:'JetBrains Mono',size:11}, color:'#3a4949', padding:16, usePointStyle:true, pointStyle:'rect'}},
+        tooltip:{backgroundColor:'#1b2a2a',padding:12,callbacks:{label:c=>` ${c.dataset.label}: ₹${fmtFull(c.parsed.y||0)}`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#7e8a8a'}},
+        y:{grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a',callback:v=>'₹'+fmt(v)}}
+      }
+    }
+  });
+
+  chart('patientTrend',{
+    type:'bar',
+    data:{labels, datasets:[{label:'Patients', data:pts, backgroundColor:'#b8932a', borderRadius:5, barPercentage:.55}]},
+    options:{maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>` ${c.parsed.y} patients`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a'}},
+              y:{grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a'}}}}
+  });
+
+  chart('marginTrend',{
+    type:'line',
+    data:{labels, datasets:[{label:'Margin %', data:margins, borderColor:'#0f5f5c', backgroundColor:'rgba(15,95,92,.12)', tension:.35, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#fbf7ee', pointBorderWidth:2.5, borderWidth:2.5, fill:true, spanGaps:true}]},
+    options:{maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>` ${c.parsed.y}% margin`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a'}},
+              y:{grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a',callback:v=>v+'%'}}}}
+  });
+}
+
+/* ===== Raw weekly table (all weeks across months) ===== */
+function flatWeeks(){
+  const rows = [];
+  DATA.active.forEach(m=>{
+    DATA.weekly[m].forEach(w=>{
+      const sale = w.rec+w.ph, exp = w.phExp+w.recExp;
+      const profit = sale - exp, margin = sale ? profit/sale : 0;
+      rows.push({month:m, ...w, sale, exp, profit, margin});
+    });
+  });
+  return rows;
+}
+function renderRaw(){
+  let rows = flatWeeks();
+  if(rawMonthFilter !== 'ALL') rows = rows.filter(r=>r.month===rawMonthFilter);
+  if(rawSort.key){
+    const dir = rawSort.dir==='asc'?1:-1;
+    rows.sort((a,b)=>(a[rawSort.key]-b[rawSort.key])*dir);
+  }
+  const search = (document.getElementById('globalSearch').value||'').toLowerCase().trim();
+  if(search) rows = rows.filter(r=>(r.wk+' '+r.range+' '+r.month).toLowerCase().includes(search) || (''+r.rec+r.ph+r.sale).includes(search));
+  document.getElementById('weekBadge').textContent = rows.length;
+  document.getElementById('rawCount').textContent = `${rows.length} record${rows.length!==1?'s':''}`;
+
+  // chips
+  document.getElementById('monthChips').innerHTML = ['ALL', ...DATA.active].map(m=>`
+    <button class="chip ${rawMonthFilter===m?'active':''}" data-m="${m}">${m}</button>
+  `).join('');
+  document.querySelectorAll('#monthChips .chip').forEach(c=>{
+    c.addEventListener('click',()=>{ rawMonthFilter = c.dataset.m; renderRaw(); });
+  });
+
+  document.getElementById('rawBody').innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.month}</td>
+      <td>${r.range}</td>
+      <td>${r.pt}</td>
+      <td>${fmtFull(r.rec)}</td>
+      <td>${fmtFull(r.ph)}</td>
+      <td>${fmtFull(r.sale)}</td>
+      <td>${fmtFull(r.exp)}</td>
+      <td class="profit ${r.profit<0?'neg':''}">${fmtFull(r.profit)}</td>
+      <td class="margin-cell" style="color:${marginColor(r.margin)}">${(r.margin*100).toFixed(1)}%</td>
+    </tr>
+  `).join('');
+
+  // totals
+  const tot = rows.reduce((a,r)=>({pt:a.pt+r.pt, sale:a.sale+r.sale, exp:a.exp+r.exp, profit:a.profit+r.profit}),{pt:0,sale:0,exp:0,profit:0});
+  document.getElementById('rawFooter').textContent = `Σ ${tot.pt} patients · ₹${fmt(tot.sale)} sale · ₹${fmt(tot.exp)} exp · ₹${fmt(tot.profit)} variable profit`;
+
+  // sort header styling
+  document.querySelectorAll('#rawTable thead th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.sort===rawSort.key) th.classList.add('sort-'+rawSort.dir);
+  });
+}
+document.addEventListener('click',e=>{
+  const th = e.target.closest('th.sortable');
+  if(!th) return;
+  const k = th.dataset.sort;
+  if(rawSort.key===k){ rawSort.dir = rawSort.dir==='asc'?'desc':'asc'; }
+  else { rawSort.key = k; rawSort.dir='desc'; }
+  renderRaw();
+});
+
+/* ===== Compare view ===== */
+function buildCompareSelects(){
+  const opts = DATA.active.map(m=>`<option value="${m}">${m}</option>`).join('');
+  const a = document.getElementById('cmpA'); const b = document.getElementById('cmpB');
+  a.innerHTML = opts; b.innerHTML = opts;
+  a.value = DATA.active[0]; b.value = DATA.active[1] || DATA.active[0];
+  a.addEventListener('change',renderCompare); b.addEventListener('change',renderCompare);
+}
+function renderCompare(){
+  const a = aggregateMonth(document.getElementById('cmpA').value);
+  const b = aggregateMonth(document.getElementById('cmpB').value);
+  const mA = document.getElementById('cmpA').value, mB = document.getElementById('cmpB').value;
+
+  const stats = [
+    ['Patients', a.pt, b.pt, false],
+    ['Total Sale', a.totalSale, b.totalSale, true],
+    ['Reception Sale', a.rec, b.rec, true],
+    ['Pharmacy Sale', a.ph, b.ph, true],
+    ['Variable Exp', a.variable, b.variable, true],
+    ['Fixed Exp', a.fixed, b.fixed, true],
+    ['Total Exp', a.totalExp, b.totalExp, true],
+    ['Net Profit', a.netProfit, b.netProfit, true],
+    ['Margin %', (a.margin*100).toFixed(1)+'%', (b.margin*100).toFixed(1)+'%', false, true],
+    ['Avg / Patient', Math.round(a.avgPerPt), Math.round(b.avgPerPt), true]
+  ];
+  document.getElementById('compareGrid').innerHTML = `
+    <div class="compare-col">
+      <h3>${mA}</h3><div class="tag">Period A · ${a.weeks.length} weeks</div>
+      ${stats.map(s=>`<div class="compare-stat"><span class="l">${s[0]}</span><span class="v">${s[4]?s[1]:(s[3]?'₹':'')+(typeof s[1]==='string'?s[1]:fmtFull(s[1]))}</span></div>`).join('')}
+    </div>
+    <div class="vs-divider">vs</div>
+    <div class="compare-col">
+      <h3>${mB}</h3><div class="tag">Period B · ${b.weeks.length} weeks</div>
+      ${stats.map(s=>`<div class="compare-stat"><span class="l">${s[0]}</span><span class="v">${s[4]?s[2]:(s[3]?'₹':'')+(typeof s[2]==='string'?s[2]:fmtFull(s[2]))}</span></div>`).join('')}
+    </div>
+  `;
+
+  // variance table
+  const va = (lbl, av, bv, isCur=true) => {
+    const d = bv - av;
+    const pctd = av ? ((bv-av)/Math.abs(av))*100 : 0;
+    const cls = Math.abs(pctd)<0.5?'delta-flat':(pctd>=0?'delta-up':'delta-down');
+    return `<tr>
+      <td style="font-family:'Fraunces',serif;font-style:italic;color:var(--ink);font-size:14px">${lbl}</td>
+      <td>${isCur?'₹':''}${fmtFull(av)}</td>
+      <td>${isCur?'₹':''}${fmtFull(bv)}</td>
+      <td class="delta-cell ${cls}">${d>=0?'+':''}${isCur?'₹':''}${fmtFull(d)}</td>
+      <td class="delta-cell ${cls}">${pctd>=0?'+':''}${pctd.toFixed(1)}%</td>
+    </tr>`;
+  };
+  document.getElementById('varianceTable').innerHTML = `
+    <thead><tr>
+      <th>Metric</th><th>${mA}</th><th>${mB}</th><th>Δ Abs</th><th>Δ %</th>
+    </tr></thead>
+    <tbody>
+      ${va('Patients', a.pt, b.pt, false)}
+      ${va('Total Sale', a.totalSale, b.totalSale)}
+      ${va('Reception', a.rec, b.rec)}
+      ${va('Pharmacy', a.ph, b.ph)}
+      ${va('Variable Exp', a.variable, b.variable)}
+      ${va('Fixed Exp', a.fixed, b.fixed)}
+      ${va('Total Exp', a.totalExp, b.totalExp)}
+      ${va('Net Profit', a.netProfit, b.netProfit)}
+      ${va('GPay', a.gpay, b.gpay)}
+      ${va('Cash', a.cash, b.cash)}
+    </tbody>
+  `;
+}
+
+/* ===== Insights view ===== */
+function renderInsightsView(){
+  const tiles = [];
+  DATA.active.forEach(m=>{
+    const x = aggregateMonth(m);
+    const phShare = x.totalSale ? (x.ph/x.totalSale*100) : 0;
+    const fixedBurden = x.totalSale ? (x.fixed/x.totalSale*100) : 0;
+    const loss = x.weeks.filter(w=>(w.rec+w.ph-w.phExp-w.recExp)<0).length;
+    tiles.push({
+      title:`${m} — Snapshot`,
+      tag:'Monthly read',
+      metric:`₹${fmt(x.netProfit)}`,
+      metricCls: x.netProfit<0?'bad':(x.margin<0.1?'warn':'good'),
+      lines:[
+        `Revenue of ₹${fmt(x.totalSale)} over ${x.weeks.length} weeks with ${x.pt} patients (₹${fmt(Math.round(x.avgPerPt))}/visit).`,
+        `Pharmacy contributed ${phShare.toFixed(1)}% of revenue; fixed overheads consumed ${fixedBurden.toFixed(1)}% of sales.`,
+        loss>0 ? `<b style="color:var(--rust)">${loss} week${loss>1?'s':''}</b> closed in loss territory.` : `All weeks were operationally profitable.`
+      ]
+    });
+  });
+  // YTD insight
+  const ytd = DATA.active.reduce((a,m)=>{const x=aggregateMonth(m);a.sale+=x.totalSale;a.exp+=x.totalExp;a.profit+=x.netProfit;a.pt+=x.pt;return a;},{sale:0,exp:0,profit:0,pt:0});
+  tiles.push({
+    title:'Year-to-Date Summary',
+    tag:'Period · '+DATA.active.join(' → '),
+    metric:`${ytd.sale?(ytd.profit/ytd.sale*100).toFixed(1):'0'}%`,
+    metricCls: ytd.profit>0?'good':'bad',
+    lines:[
+      `Total revenue of <b>₹${fmt(ytd.sale)}</b> against <b>₹${fmt(ytd.exp)}</b> in costs.`,
+      `Net result: <b style="color:${ytd.profit>=0?'var(--moss)':'var(--rust)'}">₹${fmt(ytd.profit)}</b> across ${ytd.pt} patient visits.`,
+      `Blended margin sits at ${ytd.sale?(ytd.profit/ytd.sale*100).toFixed(1):'0'}% — driven primarily by the salary cost line which dominates fixed overheads.`
+    ]
+  });
+  // Risk insight
+  const allWeeks = flatWeeks();
+  const lossWeeks = allWeeks.filter(w=>w.profit<0);
+  tiles.push({
+    title:'Risk Watch',
+    tag:'Loss-making weeks',
+    metric:`${lossWeeks.length}/${allWeeks.length}`,
+    metricCls: lossWeeks.length>0?'warn':'good',
+    lines:[
+      lossWeeks.length>0 
+        ? `${lossWeeks.length} out of ${allWeeks.length} weeks closed in the red. Common pattern: end-of-month week with large pharmacy-stock expense (e.g. ₹${fmt(Math.max(...lossWeeks.map(w=>w.phExp)))}).`
+        : `No weekly losses on record. Healthy pattern.`,
+      `Largest single-week loss: <b>₹${fmt(Math.min(...allWeeks.map(w=>w.profit)))}</b>.`,
+      `Consider smoothing pharmacy procurement to avoid concentrated cash drains.`
+    ]
+  });
+
+  document.getElementById('insightTiles').innerHTML = tiles.map(t=>`
+    <div class="insight-tile">
+      <div class="tag">${t.tag}</div>
+      <h3>${t.title}</h3>
+      <div class="metric ${t.metricCls||''}">${t.metric}</div>
+      ${t.lines.map(l=>`<p>${l}</p>`).join('')}
+    </div>
+  `).join('');
+}
+
+/* ===== Fixed view ===== */
+function renderFixedView(){
+  const m = aggregateMonth(currentMonth);
+  document.getElementById('fixedTag').textContent = currentMonth;
+  const items = [
+    {lbl:'Salary', val:m.fx.salary, col:'#073d3b'},
+    {lbl:'Rent', val:m.fx.rent, col:'#0f5f5c'},
+    {lbl:'EB', val:m.fx.eb, col:'#c2731a'},
+    {lbl:'Maintenance', val:m.fx.maint, col:'#b8932a'},
+    {lbl:'Medical', val:m.fx.medical, col:'#a4341c'},
+    {lbl:'A/C Transfer', val:m.fx.transfer, col:'#7e8a8a'},
+    {lbl:'Other', val:m.fx.other, col:'#5e7a3a'}
+  ];
+  const present = items.filter(i=>i.val>0);
+  if(present.length===0){
+    if(charts['fixedChart']) charts['fixedChart'].destroy();
+    document.getElementById('fixedTable').innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:30px;font-style:italic">No fixed overheads recorded for ${currentMonth}</td></tr>`;
+  } else {
+    chart('fixedChart',{
+      type:'bar',
+      data:{labels:present.map(i=>i.lbl), datasets:[{data:present.map(i=>i.val), backgroundColor:present.map(i=>i.col), borderRadius:6, barPercentage:.65}]},
+      options:{indexAxis:'y', maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>'₹'+fmtFull(c.parsed.x)+' · '+pct(c.parsed.x,m.fixed)}}},
+        scales:{x:{grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a',callback:v=>'₹'+fmt(v)}},
+                y:{grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#3a4949'}}}}
+    });
+    document.getElementById('fixedTable').innerHTML = `
+      <thead><tr style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase">
+        <th style="text-align:left;padding:8px 4px;border-bottom:1px solid var(--line-strong)">Component</th>
+        <th style="text-align:right;padding:8px 4px;border-bottom:1px solid var(--line-strong)">Amount</th>
+        <th style="text-align:right;padding:8px 4px;border-bottom:1px solid var(--line-strong)">Share</th>
+      </tr></thead>` +
+      present.map(i=>`<tr><td>${i.lbl}</td><td>₹${fmtFull(i.val)}</td><td>${pct(i.val,m.fixed)}</td></tr>`).join('') +
+      `<tr class="subtotal"><td>Total Fixed</td><td>₹${fmtFull(m.fixed)}</td><td>100%</td></tr>`;
+  }
+
+  // multi-month stacked
+  const labels = DATA.active;
+  chart('fixedMulti',{
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Salary', data:labels.map(x=>DATA.fixed[x]?.salary||0), backgroundColor:'#073d3b'},
+      {label:'Rent', data:labels.map(x=>DATA.fixed[x]?.rent||0), backgroundColor:'#0f5f5c'},
+      {label:'EB', data:labels.map(x=>DATA.fixed[x]?.eb||0), backgroundColor:'#c2731a'},
+      {label:'Other', data:labels.map(x=>{const f=DATA.fixed[x]||{};return (f.maint||0)+(f.medical||0)+(f.transfer||0)+(f.other||0);}), backgroundColor:'#b8932a'}
+    ]},
+    options:{maintainAspectRatio:false, plugins:{
+      legend:{position:'bottom', labels:{font:{family:'JetBrains Mono',size:10.5},color:'#3a4949',usePointStyle:true,pointStyle:'rect',padding:14}},
+      tooltip:{backgroundColor:'#1b2a2a',callbacks:{label:c=>` ${c.dataset.label}: ₹${fmtFull(c.parsed.y)}`}}
+    },
+    scales:{x:{stacked:true,grid:{display:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#7e8a8a'}},
+            y:{stacked:true,grid:{color:'rgba(27,42,42,.07)',drawBorder:false},ticks:{font:{family:'JetBrains Mono',size:10},color:'#7e8a8a',callback:v=>'₹'+fmt(v)}}}}
+  });
+}
+
+/* ===== Insights box on dashboard ===== */
+function renderInsightsBox(){
+  const m = aggregateMonth(currentMonth);
+  const weeks = m.weeks;
+  const profitable = weeks.filter(w=>(w.rec+w.ph-w.phExp-w.recExp)>0).length;
+  const lossWeeks = weeks.length - profitable;
+  const phShare = m.totalSale ? (m.ph/m.totalSale*100).toFixed(1) : '0';
+  const fixedBurden = m.totalSale ? (m.fixed/m.totalSale*100).toFixed(1) : '0';
+  const digitalShare = (m.gpay+m.cash)>0 ? (m.gpay/(m.gpay+m.cash)*100).toFixed(1) : '0';
+  const bestWk = weeks.length ? weeks.reduce((a,b)=> (a.rec+a.ph)>(b.rec+b.ph)?a:b) : null;
+  const worstWk = weeks.length ? weeks.reduce((a,b)=>((a.rec+a.ph-a.phExp-a.recExp)<(b.rec+b.ph-b.phExp-b.recExp)?a:b)) : null;
+  const items = [
+    {cls:'', num:phShare+'%', lbl:'Pharmacy share of revenue — the larger revenue engine vs. Reception.'},
+    {cls: fixedBurden>50?'bad':(fixedBurden>30?'warn':''), num:fixedBurden+'%', lbl:'Fixed-cost burden on revenue. Salary dominates the overhead stack.'},
+    {cls: lossWeeks>0?'warn':'good', num:`${profitable}/${weeks.length}`, lbl:`Profitable weeks${lossWeeks?` · ${lossWeeks} loss-making`:' — full month positive'}.`},
+    {cls:'', num:digitalShare+'%', lbl:'Digital (GPay) collection share. Remaining settled in cash.'},
+    bestWk ? {cls:'good', num:'₹'+fmt(bestWk.rec+bestWk.ph), lbl:`Top week: ${bestWk.wk} (${bestWk.pt} patients).`} : null,
+    worstWk && (worstWk.rec+worstWk.ph-worstWk.phExp-worstWk.recExp)<0 ? {cls:'bad', num:'₹'+fmt(worstWk.rec+worstWk.ph-worstWk.phExp-worstWk.recExp), lbl:`Weakest week: ${worstWk.wk} — pharmacy expense spike.`} : {cls:'', num:'₹'+fmt(Math.round(m.avgPerPt)), lbl:'Average revenue per patient visit.'}
+  ].filter(Boolean).slice(0,3);
+  document.getElementById('insightsBox').innerHTML = items.map(i=>`
+    <div class="insight ${i.cls}"><div class="num">${i.num}</div><div class="lbl">${i.lbl}</div></div>
+  `).join('');
+}
+
+/* ===== Drawer ===== */
+function openDrawer(key){
+  const m = aggregateMonth(currentMonth);
+  const titles = {
+    sale:'Total Sale', exp:'Total Expense', profit:'Net Profit', pt:'Patients',
+    avg:'Avg per Patient', margin:'Profit Margin', gpay:'GPay Collected', cash:'Cash in Hand'
+  };
+  const valFmt = {
+    sale:'₹'+fmtFull(m.totalSale), exp:'₹'+fmtFull(m.totalExp), profit:'₹'+fmtFull(m.netProfit),
+    pt:m.pt+' visits', avg:'₹'+fmtFull(Math.round(m.avgPerPt)),
+    margin:(m.margin*100).toFixed(1)+'%', gpay:'₹'+fmtFull(m.gpay), cash:'₹'+fmtFull(m.cash)
+  };
+  const weeklyBreakdown = m.weeks.map(w=>{
+    const v = {sale:w.rec+w.ph, exp:w.phExp+w.recExp, profit:(w.rec+w.ph-w.phExp-w.recExp),
+               pt:w.pt, avg:w.pt?Math.round((w.rec+w.ph)/w.pt):0,
+               margin:(w.rec+w.ph)?(((w.rec+w.ph-w.phExp-w.recExp)/(w.rec+w.ph))*100).toFixed(1)+'%':'0%',
+               gpay:w.gpay, cash:w.cash}[key];
+    const display = (key==='pt'||key==='margin') ? v : '₹'+fmtFull(v);
+    return `<div class="compare-stat"><span class="l">${w.wk}</span><span class="v">${display}</span></div>`;
+  }).join('');
+
+  let context = '';
+  if(key==='profit' && m.netProfit<0){
+    context = `<p style="color:var(--rust);font-size:13px;line-height:1.6;background:rgba(164,52,28,.08);padding:14px 16px;border-radius:8px;border-left:3px solid var(--rust);margin:14px 0">Net result is negative for the month. Drivers: variable cost spike in one or more weeks, plus full month of fixed overhead burden.</p>`;
+  }
+  if(key==='margin' && m.margin<0.10){
+    context = `<p style="color:var(--ochre);font-size:13px;line-height:1.6;background:rgba(194,115,26,.08);padding:14px 16px;border-radius:8px;border-left:3px solid var(--ochre);margin:14px 0">Margin is thin. The fixed overhead of ₹${fmt(m.fixed)} requires ${m.fixed&&m.totalSale?Math.ceil(m.fixed/(m.totalSale/m.weeks.length)):'—'} weeks of average sales just to cover overhead.</p>`;
+  }
+
+  document.getElementById('drawerBody').innerHTML = `
+    <h2>${titles[key]}</h2>
+    <div class="drawer-sub">${currentMonth} · Drilldown</div>
+    <div style="font-family:'Fraunces',serif;font-size:44px;font-weight:500;letter-spacing:-.025em;color:var(--teal);line-height:1;margin-bottom:18px">${valFmt[key]}</div>
+    ${context}
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin:18px 0 8px">Week-by-week</div>
+    ${weeklyBreakdown}
+  `;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('show');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+/* ===== Entry form ===== */
+function buildEntryForm(){
+  const sel = document.getElementById('f_month');
+  sel.innerHTML = DATA.active.map(m=>`<option value="${m}">${m}</option>`).join('');
+  sel.value = currentMonth;
+  ['f_rec','f_ph','f_phExp','f_recExp','f_gpay','f_cash','f_pt'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', previewCalc);
+  });
+  previewCalc();
+}
+function previewCalc(){
+  const rec = +document.getElementById('f_rec').value || 0;
+  const ph = +document.getElementById('f_ph').value || 0;
+  const phE = +document.getElementById('f_phExp').value || 0;
+  const recE = +document.getElementById('f_recExp').value || 0;
+  const gp = +document.getElementById('f_gpay').value || 0;
+  const cs = +document.getElementById('f_cash').value || 0;
+  const sale = rec+ph, exp = phE+recE, np = sale-exp, mg = sale?(np/sale*100):0;
+  document.getElementById('p_sale').textContent = '₹'+fmtFull(sale);
+  document.getElementById('p_exp').textContent = '₹'+fmtFull(exp);
+  document.getElementById('p_np').textContent = '₹'+fmtFull(np);
+  document.getElementById('p_mg').textContent = mg.toFixed(1)+'%';
+  document.getElementById('p_ih').textContent = '₹'+fmtFull(gp+cs);
+}
+function resetEntry(){
+  ['f_rec','f_ph','f_phExp','f_recExp','f_gpay','f_cash','f_pt'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('f_range').value = '';
+  previewCalc();
+}
+function addWeek(){
+  const month = document.getElementById('f_month').value;
+  const wk = +document.getElementById('f_wk').value || 1;
+  const range = document.getElementById('f_range').value || '— —';
+  const row = {
+    wk:'Week '+wk, range,
+    pt:+document.getElementById('f_pt').value || 0,
+    rec:+document.getElementById('f_rec').value || 0,
+    ph:+document.getElementById('f_ph').value || 0,
+    phExp:+document.getElementById('f_phExp').value || 0,
+    recExp:+document.getElementById('f_recExp').value || 0,
+    gpay:+document.getElementById('f_gpay').value || 0,
+    cash:+document.getElementById('f_cash').value || 0
+  };
+  DATA.weekly[month].push(row);
+  toast(`Added ${row.wk} to ${month}`);
+  resetEntry();
+  renderAll();
+  // jump to dashboard
+  setView('dashboard');
+  currentMonth = month;
+  buildTabs();
+  renderAll();
+}
+
+/* ===== Export ===== */
+function exportCSV(scope='all'){
+  let csv = '', name = '';
+  const esc = v => '"'+String(v).replace(/"/g,'""')+'"';
+  if(scope==='weekly' || scope==='current'){
+    name = `Nalam_${currentMonth.replace(' ','_')}_Weekly.csv`;
+    csv = 'Week,Date Range,Patients,Reception,Pharmacy,Total Sale,Pharm Exp,Recep Exp,Total Exp,Net Profit,GPay,Cash,Margin %\n';
+    DATA.weekly[currentMonth].forEach(w=>{
+      const s=w.rec+w.ph, e=w.phExp+w.recExp, p=s-e, mg=s?p/s:0;
+      csv += [w.wk,w.range,w.pt,w.rec,w.ph,s,w.phExp,w.recExp,e,p,w.gpay,w.cash,(mg*100).toFixed(2)].map(esc).join(',')+'\n';
+    });
+  } else if(scope==='monthly'){
+    name = 'Nalam_Monthly_Summary.csv';
+    csv = 'Month,Weeks,Patients,Reception,Pharmacy,Total Sale,Variable Exp,Fixed Exp,Total Exp,Net Profit,GPay,Cash,Margin %\n';
+    DATA.active.forEach(m=>{
+      const a = aggregateMonth(m);
+      csv += [m,a.weeks.length,a.pt,a.rec,a.ph,a.totalSale,a.variable,a.fixed,a.totalExp,a.netProfit,a.gpay,a.cash,(a.margin*100).toFixed(2)].map(esc).join(',')+'\n';
+    });
+  } else if(scope==='pnl'){
+    const m = aggregateMonth(currentMonth);
+    name = `Nalam_${currentMonth.replace(' ','_')}_PnL.csv`;
+    csv = 'Line Item,Amount,% of Revenue\n';
+    csv += [
+      ['Reception Sales', m.rec, pct(m.rec,m.totalSale||1)],
+      ['Pharmacy Sales', m.ph, pct(m.ph,m.totalSale||1)],
+      ['Total Revenue', m.totalSale, '100%'],
+      ['Pharmacy Expense', m.phExp, pct(m.phExp,m.totalSale||1)],
+      ['Reception Expense', m.recExp, pct(m.recExp,m.totalSale||1)],
+      ['Total Variable', m.variable, pct(m.variable,m.totalSale||1)],
+      ['Rent', m.fx.rent, pct(m.fx.rent,m.totalSale||1)],
+      ['EB', m.fx.eb, pct(m.fx.eb,m.totalSale||1)],
+      ['Salary', m.fx.salary, pct(m.fx.salary,m.totalSale||1)],
+      ['Total Fixed', m.fixed, pct(m.fixed,m.totalSale||1)],
+      ['Net Profit', m.netProfit, (m.margin*100).toFixed(2)+'%']
+    ].map(r=>r.map(esc).join(',')).join('\n');
+  } else if(scope==='fixed'){
+    name = 'Nalam_Fixed_Overheads.csv';
+    csv = 'Month,Rent,EB,Salary,Maintenance,Medical,Transfer,Other,Total\n';
+    DATA.active.forEach(m=>{
+      const f = DATA.fixed[m]||{};
+      const tot = (f.rent||0)+(f.eb||0)+(f.salary||0)+(f.maint||0)+(f.medical||0)+(f.transfer||0)+(f.other||0);
+      csv += [m,f.rent||0,f.eb||0,f.salary||0,f.maint||0,f.medical||0,f.transfer||0,f.other||0,tot].map(esc).join(',')+'\n';
+    });
+  } else {
+    name = 'Nalam_All_Weeks.csv';
+    csv = 'Month,Week,Date Range,Patients,Reception,Pharmacy,Total Sale,Pharm Exp,Recep Exp,Total Exp,Net Profit,GPay,Cash,Margin %\n';
+    DATA.active.forEach(m=>{
+      DATA.weekly[m].forEach(w=>{
+        const s=w.rec+w.ph, e=w.phExp+w.recExp, p=s-e, mg=s?p/s:0;
+        csv += [m,w.wk,w.range,w.pt,w.rec,w.ph,s,w.phExp,w.recExp,e,p,w.gpay,w.cash,(mg*100).toFixed(2)].map(esc).join(',')+'\n';
+      });
+    });
+  }
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+  toast(`Exported ${name}`);
+}
+
+/* ===== Toast ===== */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ===== view switching ===== */
+function setView(v){
+  currentView = v;
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.toggle('active', l.dataset.view===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active', s.dataset.view===v));
+  const titles = {
+    dashboard:['Master <em>Dashboard</em>', 'Operations overview'],
+    weekly:['All <em>Weeks</em>', 'Detailed ledger across active months'],
+    pnl:['P&L <em>Statement</em>', 'Profit & loss · prior-month variance'],
+    trend:['12-Month <em>Trend</em>', 'Revenue, expense, profit, margin trajectory'],
+    compare:['<em>Compare</em> Months', 'Side-by-side period analysis'],
+    insights:['Operational <em>Insights</em>', 'Auto-generated reads from the data'],
+    fixed:['Fixed <em>Overheads</em>', 'Monthly recurring costs'],
+    entry:['Week <em>Entry</em>', 'Add a new week to current session'],
+    export:['<em>Export</em> Data', 'CSV downloads and print views']
+  };
+  document.getElementById('viewTitle').innerHTML = titles[v][0];
+  document.getElementById('viewSub').textContent = titles[v][1];
+  // hide filter bar on entry/export pages
+  document.getElementById('filterbar').style.display = (v==='entry'||v==='export'||v==='compare') ? 'none' : 'flex';
+  // re-render charts on view enter (chart.js needs visible canvas)
+  setTimeout(()=>{
+    if(v==='trend') renderBigTrend();
+    if(v==='pnl') renderPNL();
+    if(v==='fixed') renderFixedView();
+    if(v==='compare') renderCompare();
+    if(v==='insights') renderInsightsView();
+    if(v==='weekly') renderRaw();
+  }, 50);
+}
+
+/* ===== global search ===== */
+document.getElementById('globalSearch').addEventListener('input', ()=>{
+  if(currentView==='weekly') renderRaw();
+});
+
+/* ===== Master render ===== */
+function renderAll(){
+  renderKPIs();
+  renderWeekly();
+  renderPayment();
+  renderTrend();
+  renderInsightsBox();
+  if(currentView==='pnl') renderPNL();
+  if(currentView==='trend') renderBigTrend();
+  if(currentView==='fixed') renderFixedView();
+  if(currentView==='compare') renderCompare();
+  if(currentView==='insights') renderInsightsView();
+  if(currentView==='weekly') renderRaw();
+}
+
+/* ===== Init ===== */
+document.querySelectorAll('.sb-link[data-view]').forEach(l=>{
+  l.addEventListener('click',()=>setView(l.dataset.view));
+});
+buildTabs();
+buildCompareSelects();
+buildEntryForm();
+renderAll();
+
+/* keyboard shortcuts */
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeDrawer();
+  if(e.ctrlKey||e.metaKey){
+    if(e.key==='1'){e.preventDefault();setView('dashboard');}
+    if(e.key==='2'){e.preventDefault();setView('weekly');}
+    if(e.key==='3'){e.preventDefault();setView('pnl');}
+    if(e.key==='k'){e.preventDefault();document.getElementById('globalSearch').focus();}
+  }
+});
+</script>
+</body>
+</html>
