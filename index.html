@@ -152,6 +152,45 @@
   .load-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:11px 22px;border-radius:8px;border:none;background:#7ec5c2;color:#073d3b;cursor:pointer;text-transform:uppercase;margin-top:14px;transition:all .2s}
   .load-btn:hover{background:#fbf7ee}
 
+  /* Password gate */
+  #pwGate{position:fixed;inset:0;z-index:10000;background:#0a2625;display:none;align-items:center;justify-content:center;background-image:radial-gradient(ellipse at top,rgba(126,197,194,.15),transparent 60%),radial-gradient(ellipse at bottom right,rgba(194,115,26,.08),transparent 55%)}
+  #pwGate.show{display:flex}
+  .pw-card{text-align:center;padding:48px 52px;max-width:420px;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  .pw-crest{width:64px;height:64px;border-radius:50%;margin:0 auto 22px;background:radial-gradient(circle at 30% 30%,#1d7a76,#073d3b);display:grid;place-items:center;color:#f3eee4;font-family:'Fraunces',serif;font-weight:700;font-size:28px;font-style:italic;box-shadow:inset 0 -3px 6px rgba(0,0,0,.3),0 8px 20px rgba(7,61,59,.4)}
+  .pw-title{font-family:'Fraunces',serif;font-weight:400;font-size:28px;letter-spacing:-.02em;color:#fbf7ee;margin-bottom:6px;line-height:1.1}
+  .pw-title em{color:#7ec5c2;font-style:italic;font-weight:500}
+  .pw-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(232,226,212,.55);margin-bottom:28px}
+  .pw-form{display:flex;flex-direction:column;gap:14px}
+  .pw-input{font-family:'Inter Tight',sans-serif;font-size:15px;padding:13px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fbf7ee;outline:none;text-align:center;letter-spacing:.05em;transition:all .15s}
+  .pw-input:focus{border-color:#7ec5c2;background:rgba(126,197,194,.1)}
+  .pw-input.error{border-color:#e89589;animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .pw-btn{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;padding:14px 22px;border-radius:10px;border:none;background:#7ec5c2;color:#073d3b;cursor:pointer;text-transform:uppercase;transition:all .2s}
+  .pw-btn:hover{background:#fbf7ee;transform:translateY(-1px);box-shadow:0 8px 20px rgba(126,197,194,.3)}
+  .pw-hint{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;color:rgba(232,226,212,.4);margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);text-transform:uppercase}
+  .pw-error-msg{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:#e89589;margin-top:6px;min-height:14px}
+
+  /* Logout button in header */
+  .logout-mini{background:none;border:1px solid var(--line);padding:5px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;transition:all .15s;margin-left:10px}
+  .logout-mini:hover{background:var(--rust);color:#fff;border-color:var(--rust)}
+  .logout-mini svg{width:11px;height:11px}
+
+  /* Filter section */
+  .filter-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 22px;margin-bottom:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .filter-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ochre)}
+  .filter-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .filter-chips{display:flex;gap:5px;flex-wrap:wrap}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:7px 11px;border-radius:6px;border:1px solid var(--line);background:transparent;cursor:pointer;letter-spacing:.06em;color:var(--ink-soft);transition:all .15s}
+  .chip:hover{border-color:var(--ochre);color:var(--ochre)}
+  .chip.active{background:var(--ochre);color:#fff;border-color:var(--ochre)}
+  .date-inputs{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+  .date-inputs input{font-family:'Inter Tight',sans-serif;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff;outline:none}
+  .date-inputs input:focus{border-color:var(--teal)}
+  .filter-summary{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+  .filter-summary .badge{padding:4px 9px;background:rgba(15,95,92,.12);color:var(--teal);border-radius:5px;font-weight:600;letter-spacing:.06em}
+  .clear-filter{font-family:'JetBrains Mono',monospace;font-size:10px;background:none;border:none;color:var(--rust);cursor:pointer;text-transform:uppercase;letter-spacing:.1em;padding:4px 8px}
+  .clear-filter:hover{text-decoration:underline}
+
   .toast{position:fixed;bottom:24px;right:24px;background:var(--teal-deep);color:#f3eee4;padding:14px 20px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:1000;opacity:0;transform:translateY(20px);transition:all .3s ease;pointer-events:none}
   .toast.show{opacity:1;transform:translateY(0)}
 
@@ -177,7 +216,22 @@
 <body>
 <div class="grain"></div>
 
-<div id="loadOverlay">
+<!-- Password gate -->
+<div id="pwGate">
+  <div class="pw-card">
+    <div class="pw-crest">N</div>
+    <div class="pw-title">Nalam <em>Clinic</em></div>
+    <div class="pw-sub">Partner Access · Secure Entry</div>
+    <form class="pw-form" id="pwForm" onsubmit="return checkPassword(event)">
+      <input type="password" id="pwInput" class="pw-input" placeholder="Enter access password" autocomplete="off" autofocus />
+      <div class="pw-error-msg" id="pwError"></div>
+      <button type="submit" class="pw-btn">Enter Dashboard</button>
+    </form>
+    <div class="pw-hint">For access, contact administrator</div>
+  </div>
+</div>
+
+<div id="loadOverlay" style="display:none">
   <div class="load-card">
     <div class="load-crest" id="loadCrest">N</div>
     <div class="load-title">Nalam <em>Clinic</em></div>
@@ -198,7 +252,13 @@
     </div>
     <div class="header-meta">
       <span class="live-pill"><span class="dot"></span>Live from Google Sheets</span>
-      <span id="lastSync">Last sync: —</span>
+      <div style="display:flex;align-items:center">
+        <span id="lastSync">Last sync: —</span>
+        <button class="logout-mini" onclick="logout()" title="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign out
+        </button>
+      </div>
     </div>
   </header>
 
@@ -213,6 +273,33 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         Refresh
       </button>
+    </div>
+  </div>
+
+  <!-- Date range filter -->
+  <div class="filter-card">
+    <div class="filter-row">
+      <span class="pill-label">Date Filter</span>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-range="all">All Data</button>
+        <button class="chip" data-range="current">Current Month</button>
+        <button class="chip" data-range="last30">Last 30 Days</button>
+        <button class="chip" data-range="last90">Last 90 Days</button>
+        <button class="chip" data-range="qtd">Quarter</button>
+        <button class="chip" data-range="ytd">YTD</button>
+        <button class="chip" data-range="custom">Custom</button>
+      </div>
+      <div class="date-inputs" id="customDateRow" style="display:none">
+        <span>From</span>
+        <input type="date" id="dateFrom" />
+        <span>To</span>
+        <input type="date" id="dateTo" />
+        <button class="chip" style="background:var(--teal-deep);color:#fff;border-color:var(--teal-deep)" onclick="applyCustomRange()">Apply</button>
+      </div>
+      <div class="filter-summary" id="filterSummary">
+        <span class="badge" id="filterBadge">All Data</span>
+        <button class="clear-filter" id="clearFilterBtn" onclick="setRange('all')" style="display:none">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -284,6 +371,179 @@
 <div class="toast" id="toast">Saved</div>
 
 <script>
+// =========================================================
+// PASSWORD GATE
+// =========================================================
+const ACCESS_PW = 'nalam2025';
+const AUTH_KEY = 'nalam_auth';
+const AUTH_DAYS = 7;
+
+function isAuthed(){
+  try {
+    const v = localStorage.getItem(AUTH_KEY);
+    if(!v) return false;
+    const data = JSON.parse(v);
+    if(!data || !data.expires) return false;
+    return Date.now() < data.expires;
+  } catch(e){ return false; }
+}
+
+function checkPassword(e){
+  if(e) e.preventDefault();
+  const input = document.getElementById('pwInput');
+  const error = document.getElementById('pwError');
+  const val = (input.value || '').trim();
+  if(val === ACCESS_PW){
+    const expires = Date.now() + AUTH_DAYS * 24 * 60 * 60 * 1000;
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify({expires})); } catch(e){}
+    document.getElementById('pwGate').classList.remove('show');
+    document.getElementById('loadOverlay').style.display = 'flex';
+    bootstrap();
+  } else {
+    input.classList.add('error');
+    error.textContent = 'Incorrect password. Please try again.';
+    input.value = '';
+    setTimeout(()=>input.classList.remove('error'), 400);
+    input.focus();
+  }
+  return false;
+}
+
+function logout(){
+  try { localStorage.removeItem(AUTH_KEY); } catch(e){}
+  location.reload();
+}
+
+// =========================================================
+// DATE FILTER
+// =========================================================
+let currentRange = 'all'; // 'all' | 'current' | 'last30' | 'last90' | 'qtd' | 'ytd' | 'custom'
+let customFrom = null;
+let customTo = null;
+
+// Parse "01/05/26 — 07/05/26" -> {start: Date, end: Date}
+function parseDateRange(rangeStr){
+  if(!rangeStr) return null;
+  const parts = rangeStr.split(/[—–-]/).map(s=>s.trim());
+  if(parts.length < 2) return null;
+  const a = parseDDMMYY(parts[0]);
+  const b = parseDDMMYY(parts[1]);
+  if(!a || !b) return null;
+  return {start: a, end: b};
+}
+
+function parseDDMMYY(s){
+  if(!s) return null;
+  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(!m) return null;
+  let yr = parseInt(m[3], 10);
+  if(yr < 100) yr += 2000;
+  return new Date(yr, parseInt(m[2],10)-1, parseInt(m[1],10));
+}
+
+function dateInRange(weekRange, fromDate, toDate){
+  const d = parseDateRange(weekRange);
+  if(!d) return true; // can't parse, include by default
+  // Include if any part of the week overlaps the filter range
+  return d.end >= fromDate && d.start <= toDate;
+}
+
+function getFilterDates(){
+  if(currentRange === 'all') return null;
+  const today = new Date();
+  let from, to;
+  if(currentRange === 'current'){
+    // Use the latest month's full range
+    if(currentMonth && DATA.weekly[currentMonth]?.length){
+      const weeks = DATA.weekly[currentMonth];
+      const ranges = weeks.map(w=>parseDateRange(w.range)).filter(Boolean);
+      if(ranges.length){
+        from = ranges[0].start;
+        to = ranges[ranges.length-1].end;
+      }
+    }
+  } else if(currentRange === 'last30'){
+    to = today;
+    from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
+  } else if(currentRange === 'last90'){
+    to = today;
+    from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 90);
+  } else if(currentRange === 'qtd'){
+    const q = Math.floor(today.getMonth() / 3);
+    from = new Date(today.getFullYear(), q*3, 1);
+    to = today;
+  } else if(currentRange === 'ytd'){
+    from = new Date(today.getFullYear(), 0, 1);
+    to = today;
+  } else if(currentRange === 'custom' && customFrom && customTo){
+    from = customFrom;
+    to = customTo;
+  }
+  if(!from || !to) return null;
+  return {from, to};
+}
+
+function setRange(r){
+  currentRange = r;
+  document.querySelectorAll('.chip[data-range]').forEach(c=>{
+    c.classList.toggle('active', c.dataset.range === r);
+  });
+  document.getElementById('customDateRow').style.display = (r==='custom') ? 'flex' : 'none';
+  if(r !== 'custom'){
+    customFrom = null;
+    customTo = null;
+  }
+  updateFilterBadge();
+  renderAll();
+}
+
+function applyCustomRange(){
+  const f = document.getElementById('dateFrom').value;
+  const t = document.getElementById('dateTo').value;
+  if(!f || !t){ toast('Please pick both From and To dates'); return; }
+  customFrom = new Date(f);
+  customTo = new Date(t);
+  if(customFrom > customTo){
+    toast('From date must be before To date');
+    return;
+  }
+  updateFilterBadge();
+  renderAll();
+}
+
+function updateFilterBadge(){
+  const badge = document.getElementById('filterBadge');
+  const clearBtn = document.getElementById('clearFilterBtn');
+  const labels = {
+    'all':'All Data', 'current':'Current Month', 'last30':'Last 30 Days',
+    'last90':'Last 90 Days', 'qtd':'This Quarter', 'ytd':'Year To Date', 'custom':'Custom Range'
+  };
+  let label = labels[currentRange] || 'Filtered';
+  const f = getFilterDates();
+  if(f && currentRange === 'custom'){
+    const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+    label = `${fmt(f.from)} — ${fmt(f.to)}`;
+  }
+  badge.textContent = label;
+  clearBtn.style.display = (currentRange === 'all') ? 'none' : 'inline-block';
+}
+
+// Filtered version of DATA.weekly for a given month
+function getFilteredWeeks(month){
+  const weeks = DATA.weekly[month] || [];
+  const f = getFilterDates();
+  if(!f) return weeks;
+  return weeks.filter(w => dateInRange(w.range, f.from, f.to));
+}
+
+// Filtered list of active months (those with at least one week in range)
+function getFilteredActiveMonths(){
+  const f = getFilterDates();
+  if(!f) return DATA.active;
+  return DATA.active.filter(m => getFilteredWeeks(m).length > 0);
+}
+
+
 const SHEET_ID = '1TmbLLtlOus2zKYPlXyJEhxXtIB2bcliAa1jD6l0aFVU';
 const sheetURL = name => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
 
@@ -411,15 +671,24 @@ async function loadData(){
 }
 
 function aggregateMonth(month){
-  const weeks = DATA.weekly[month] || [];
+  const weeks = getFilteredWeeks(month);
   const fx = DATA.fixed[month] || {rent:0,eb:0,salary:0,maint:0,medical:0,other:0};
+  // If filter excludes the whole month, fixed costs are proportionally still shown
+  // but only if there are weeks. If no weeks in range, fixed = 0.
   const tot = weeks.reduce((a,w)=>{
     a.pt+=w.pt; a.rec+=w.rec; a.ph+=w.ph;
     a.phExp+=w.phExp; a.recExp+=w.recExp;
     a.gpay+=w.gpay; a.cash+=w.cash;
     return a;
   },{pt:0,rec:0,ph:0,phExp:0,recExp:0,gpay:0,cash:0});
-  const fixed = fx.rent+fx.eb+fx.salary+fx.maint+fx.medical+fx.other;
+  // When filtering, scale fixed by the proportion of weeks shown vs total
+  let fixed = fx.rent+fx.eb+fx.salary+fx.maint+fx.medical+fx.other;
+  const totalWeeks = (DATA.weekly[month]||[]).length;
+  if(totalWeeks > 0 && weeks.length < totalWeeks){
+    fixed = fixed * (weeks.length / totalWeeks);
+  } else if(weeks.length === 0){
+    fixed = 0;
+  }
   tot.totalSale = tot.rec + tot.ph;
   tot.variable = tot.phExp + tot.recExp;
   tot.fixed = fixed;
@@ -427,7 +696,16 @@ function aggregateMonth(month){
   tot.netProfit = tot.totalSale - tot.totalExp;
   tot.margin = tot.totalSale ? (tot.netProfit/tot.totalSale) : 0;
   tot.avgPerPt = tot.pt ? tot.totalSale/tot.pt : 0;
-  tot.fx = fx;
+  // Adjusted fixed breakdown (proportional)
+  const ratio = (totalWeeks > 0 && weeks.length < totalWeeks) ? (weeks.length/totalWeeks) : (weeks.length === 0 ? 0 : 1);
+  tot.fx = {
+    rent: fx.rent * ratio,
+    eb: fx.eb * ratio,
+    salary: fx.salary * ratio,
+    maint: fx.maint * ratio,
+    medical: fx.medical * ratio,
+    other: fx.other * ratio
+  };
   tot.weeks = weeks;
   return tot;
 }
@@ -441,9 +719,11 @@ function marginColor(m){
 
 function buildTabs(){
   const root = document.getElementById('monthTabs');
+  const filteredActive = getFilteredActiveMonths();
   root.innerHTML = DATA.active.map(m=>{
     const active = m===currentMonth ? 'active':'';
-    return `<button class="month-btn ${active}" data-m="${m}">${m}</button>`;
+    const dimmed = (currentRange !== 'all' && !filteredActive.includes(m)) ? ' style="opacity:.35"' : '';
+    return `<button class="month-btn ${active}" data-m="${m}"${dimmed}>${m}</button>`;
   }).join('');
   root.querySelectorAll('.month-btn').forEach(b=>{
     b.addEventListener('click',()=>{
@@ -539,14 +819,15 @@ function renderPayment(){
 
 function renderTrend(){
   const labels = DATA.active;
+  const filteredSet = new Set(getFilteredActiveMonths());
   const sales = labels.map(m=>aggregateMonth(m).totalSale);
   const exps = labels.map(m=>aggregateMonth(m).totalExp);
   const profits = labels.map(m=>aggregateMonth(m).netProfit);
   makeChart('trendChart',{
     type:'bar',
     data:{labels, datasets:[
-      {label:'Total Sale', data:sales, backgroundColor:'#0f5f5c', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:2},
-      {label:'Total Expense', data:exps, backgroundColor:'#c2731a', borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:3},
+      {label:'Total Sale', data:sales, backgroundColor:labels.map(m=>filteredSet.has(m)?'#0f5f5c':'rgba(15,95,92,.25)'), borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:2},
+      {label:'Total Expense', data:exps, backgroundColor:labels.map(m=>filteredSet.has(m)?'#c2731a':'rgba(194,115,26,.25)'), borderRadius:4, barPercentage:.55, categoryPercentage:.7, order:3},
       {label:'Net Profit', data:profits, type:'line', borderColor:'#5e7a3a', backgroundColor:'#5e7a3a', tension:.35, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#fbf7ee', pointBorderWidth:2.5, borderWidth:2.5, order:1, spanGaps:true}
     ]},
     options:{
@@ -561,18 +842,21 @@ function renderTrend(){
       }
     }
   });
-  const tot = DATA.active.reduce((a,m)=>{
+  // YTD stats use only filtered months
+  const ytdMonths = getFilteredActiveMonths();
+  const tot = ytdMonths.reduce((a,m)=>{
     const x = aggregateMonth(m);
     a.sale+=x.totalSale; a.exp+=x.totalExp; a.profit+=x.netProfit; a.pt+=x.pt;
     return a;
   },{sale:0,exp:0,profit:0,pt:0});
-  const best = [...DATA.active].sort((a,b)=>aggregateMonth(b).netProfit-aggregateMonth(a).netProfit)[0] || '—';
+  const best = [...ytdMonths].sort((a,b)=>aggregateMonth(b).netProfit-aggregateMonth(a).netProfit)[0] || '—';
   const margin = tot.sale ? (tot.profit/tot.sale*100).toFixed(1) : '0';
+  const periodLabel = currentRange==='all' ? `${ytdMonths.length} month${ytdMonths.length!==1?'s':''}` : `Filtered`;
   document.getElementById('trendStats').innerHTML = `
-    <div class="stat-block"><div class="lbl">YTD Revenue</div><div class="num">₹${fmt(tot.sale)}</div><div class="sub">${DATA.active.length} months · ${tot.pt} patients</div></div>
-    <div class="stat-block"><div class="lbl">YTD Net Profit</div><div class="num" style="color:${tot.profit>=0?'#5e7a3a':'#a4341c'}">₹${fmt(tot.profit)}</div><div class="sub">${margin}% blended margin</div></div>
+    <div class="stat-block"><div class="lbl">Period Revenue</div><div class="num">₹${fmt(tot.sale)}</div><div class="sub">${periodLabel} · ${tot.pt} patients</div></div>
+    <div class="stat-block"><div class="lbl">Period Net Profit</div><div class="num" style="color:${tot.profit>=0?'#5e7a3a':'#a4341c'}">₹${fmt(tot.profit)}</div><div class="sub">${margin}% blended margin</div></div>
     <div class="stat-block"><div class="lbl">Best Month</div><div class="num">${best}</div><div class="sub">${best!=='—'?'₹'+fmt(aggregateMonth(best).netProfit)+' net profit':''}</div></div>
-    <div class="stat-block"><div class="lbl">Avg Patient Value</div><div class="num">₹${fmt(tot.pt?Math.round(tot.sale/tot.pt):0)}</div><div class="sub">Across reporting period</div></div>
+    <div class="stat-block"><div class="lbl">Avg Patient Value</div><div class="num">₹${fmt(tot.pt?Math.round(tot.sale/tot.pt):0)}</div><div class="sub">${currentRange==='all'?'Across reporting period':'Filtered period'}</div></div>
   `;
 }
 
@@ -673,12 +957,20 @@ async function bootstrap(){
     }
     currentMonth = DATA.active[DATA.active.length-1];
     buildTabs();
+    wireFilterChips();
+    updateFilterBadge();
     renderAll();
     document.getElementById('loadOverlay').style.display = 'none';
   } catch(err){
     console.error('Load error:', err);
     showError(err.message || 'Could not connect to the Google Sheet.');
   }
+}
+
+function wireFilterChips(){
+  document.querySelectorAll('.chip[data-range]').forEach(c=>{
+    c.addEventListener('click', ()=> setRange(c.dataset.range));
+  });
 }
 
 async function refreshData(){
@@ -708,7 +1000,18 @@ document.addEventListener('keydown', e=>{
   }
 });
 
-bootstrap();
+// Entry point — check password first
+(function init(){
+  if(isAuthed()){
+    document.getElementById('pwGate').classList.remove('show');
+    document.getElementById('loadOverlay').style.display = 'flex';
+    bootstrap();
+  } else {
+    document.getElementById('loadOverlay').style.display = 'none';
+    document.getElementById('pwGate').classList.add('show');
+    setTimeout(()=>document.getElementById('pwInput').focus(), 100);
+  }
+})();
 </script>
 </body>
 </html>
