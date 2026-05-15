@@ -279,26 +279,17 @@
   <!-- Date range filter -->
   <div class="filter-card">
     <div class="filter-row">
-      <span class="pill-label">Date Filter</span>
-      <div class="filter-chips" id="filterChips">
-        <button class="chip active" data-range="all">All Data</button>
-        <button class="chip" data-range="current">Current Month</button>
-        <button class="chip" data-range="last30">Last 30 Days</button>
-        <button class="chip" data-range="last90">Last 90 Days</button>
-        <button class="chip" data-range="qtd">Quarter</button>
-        <button class="chip" data-range="ytd">YTD</button>
-        <button class="chip" data-range="custom">Custom</button>
-      </div>
-      <div class="date-inputs" id="customDateRow" style="display:none">
+      <span class="pill-label">Filter by Date</span>
+      <div class="date-inputs">
         <span>From</span>
         <input type="date" id="dateFrom" />
         <span>To</span>
         <input type="date" id="dateTo" />
-        <button class="chip" style="background:var(--teal-deep);color:#fff;border-color:var(--teal-deep)" onclick="applyCustomRange()">Apply</button>
+        <button class="chip" style="background:var(--teal-deep);color:#fff;border-color:var(--teal-deep)" onclick="applyCustomRange()">Apply Filter</button>
+        <button class="chip" onclick="clearFilter()">Show All</button>
       </div>
-      <div class="filter-summary" id="filterSummary">
-        <span class="badge" id="filterBadge">All Data</span>
-        <button class="clear-filter" id="clearFilterBtn" onclick="setRange('all')" style="display:none">Clear</button>
+      <div class="filter-summary">
+        <span class="badge" id="filterBadge">Showing all data</span>
       </div>
     </div>
   </div>
@@ -415,9 +406,9 @@ function logout(){
 }
 
 // =========================================================
-// DATE FILTER
+// DATE FILTER — Custom range only
 // =========================================================
-let currentRange = 'all'; // 'all' | 'current' | 'last30' | 'last90' | 'qtd' | 'ytd' | 'custom'
+let filterActive = false;
 let customFrom = null;
 let customTo = null;
 
@@ -444,88 +435,62 @@ function parseDDMMYY(s){
 function dateInRange(weekRange, fromDate, toDate){
   const d = parseDateRange(weekRange);
   if(!d) return true; // can't parse, include by default
-  // Include if any part of the week overlaps the filter range
   return d.end >= fromDate && d.start <= toDate;
 }
 
 function getFilterDates(){
-  if(currentRange === 'all') return null;
-  const today = new Date();
-  let from, to;
-  if(currentRange === 'current'){
-    // Use the latest month's full range
-    if(currentMonth && DATA.weekly[currentMonth]?.length){
-      const weeks = DATA.weekly[currentMonth];
-      const ranges = weeks.map(w=>parseDateRange(w.range)).filter(Boolean);
-      if(ranges.length){
-        from = ranges[0].start;
-        to = ranges[ranges.length-1].end;
-      }
-    }
-  } else if(currentRange === 'last30'){
-    to = today;
-    from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30);
-  } else if(currentRange === 'last90'){
-    to = today;
-    from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 90);
-  } else if(currentRange === 'qtd'){
-    const q = Math.floor(today.getMonth() / 3);
-    from = new Date(today.getFullYear(), q*3, 1);
-    to = today;
-  } else if(currentRange === 'ytd'){
-    from = new Date(today.getFullYear(), 0, 1);
-    to = today;
-  } else if(currentRange === 'custom' && customFrom && customTo){
-    from = customFrom;
-    to = customTo;
-  }
-  if(!from || !to) return null;
-  return {from, to};
-}
-
-function setRange(r){
-  currentRange = r;
-  document.querySelectorAll('.chip[data-range]').forEach(c=>{
-    c.classList.toggle('active', c.dataset.range === r);
-  });
-  document.getElementById('customDateRow').style.display = (r==='custom') ? 'flex' : 'none';
-  if(r !== 'custom'){
-    customFrom = null;
-    customTo = null;
-  }
-  updateFilterBadge();
-  renderAll();
+  if(!filterActive || !customFrom || !customTo) return null;
+  return {from: customFrom, to: customTo};
 }
 
 function applyCustomRange(){
   const f = document.getElementById('dateFrom').value;
   const t = document.getElementById('dateTo').value;
   if(!f || !t){ toast('Please pick both From and To dates'); return; }
-  customFrom = new Date(f);
-  customTo = new Date(t);
-  if(customFrom > customTo){
+  const fromD = new Date(f);
+  const toD = new Date(t);
+  if(fromD > toD){
     toast('From date must be before To date');
     return;
   }
+  customFrom = fromD;
+  customTo = toD;
+  filterActive = true;
   updateFilterBadge();
+  // Switch to first month that has data in this range
+  const filteredActive = getFilteredActiveMonths();
+  if(filteredActive.length > 0 && !filteredActive.includes(currentMonth)){
+    currentMonth = filteredActive[filteredActive.length-1];
+  }
+  buildTabs();
   renderAll();
+  toast('Filter applied');
+}
+
+function clearFilter(){
+  filterActive = false;
+  customFrom = null;
+  customTo = null;
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  updateFilterBadge();
+  buildTabs();
+  renderAll();
+  toast('Filter cleared');
 }
 
 function updateFilterBadge(){
   const badge = document.getElementById('filterBadge');
-  const clearBtn = document.getElementById('clearFilterBtn');
-  const labels = {
-    'all':'All Data', 'current':'Current Month', 'last30':'Last 30 Days',
-    'last90':'Last 90 Days', 'qtd':'This Quarter', 'ytd':'Year To Date', 'custom':'Custom Range'
-  };
-  let label = labels[currentRange] || 'Filtered';
-  const f = getFilterDates();
-  if(f && currentRange === 'custom'){
-    const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
-    label = `${fmt(f.from)} — ${fmt(f.to)}`;
+  if(!filterActive || !customFrom || !customTo){
+    badge.textContent = 'Showing all data';
+    badge.style.background = 'rgba(15,95,92,.12)';
+    badge.style.color = 'var(--teal)';
+    return;
   }
-  badge.textContent = label;
-  clearBtn.style.display = (currentRange === 'all') ? 'none' : 'inline-block';
+  const fmtD = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`;
+  badge.textContent = `Filtered: ${fmtD(customFrom)} → ${fmtD(customTo)}`;
+  badge.style.background = 'rgba(194,115,26,.15)';
+  badge.style.color = 'var(--ochre)';
 }
 
 // Filtered version of DATA.weekly for a given month
@@ -722,7 +687,7 @@ function buildTabs(){
   const filteredActive = getFilteredActiveMonths();
   root.innerHTML = DATA.active.map(m=>{
     const active = m===currentMonth ? 'active':'';
-    const dimmed = (currentRange !== 'all' && !filteredActive.includes(m)) ? ' style="opacity:.35"' : '';
+    const dimmed = (filterActive && !filteredActive.includes(m)) ? ' style="opacity:.35"' : '';
     return `<button class="month-btn ${active}" data-m="${m}"${dimmed}>${m}</button>`;
   }).join('');
   root.querySelectorAll('.month-btn').forEach(b=>{
@@ -851,12 +816,12 @@ function renderTrend(){
   },{sale:0,exp:0,profit:0,pt:0});
   const best = [...ytdMonths].sort((a,b)=>aggregateMonth(b).netProfit-aggregateMonth(a).netProfit)[0] || '—';
   const margin = tot.sale ? (tot.profit/tot.sale*100).toFixed(1) : '0';
-  const periodLabel = currentRange==='all' ? `${ytdMonths.length} month${ytdMonths.length!==1?'s':''}` : `Filtered`;
+  const periodLabel = !filterActive ? `${ytdMonths.length} month${ytdMonths.length!==1?'s':''}` : `Filtered`;
   document.getElementById('trendStats').innerHTML = `
     <div class="stat-block"><div class="lbl">Period Revenue</div><div class="num">₹${fmt(tot.sale)}</div><div class="sub">${periodLabel} · ${tot.pt} patients</div></div>
     <div class="stat-block"><div class="lbl">Period Net Profit</div><div class="num" style="color:${tot.profit>=0?'#5e7a3a':'#a4341c'}">₹${fmt(tot.profit)}</div><div class="sub">${margin}% blended margin</div></div>
     <div class="stat-block"><div class="lbl">Best Month</div><div class="num">${best}</div><div class="sub">${best!=='—'?'₹'+fmt(aggregateMonth(best).netProfit)+' net profit':''}</div></div>
-    <div class="stat-block"><div class="lbl">Avg Patient Value</div><div class="num">₹${fmt(tot.pt?Math.round(tot.sale/tot.pt):0)}</div><div class="sub">${currentRange==='all'?'Across reporting period':'Filtered period'}</div></div>
+    <div class="stat-block"><div class="lbl">Avg Patient Value</div><div class="num">₹${fmt(tot.pt?Math.round(tot.sale/tot.pt):0)}</div><div class="sub">${!filterActive?'Across reporting period':'Filtered period'}</div></div>
   `;
 }
 
@@ -957,7 +922,6 @@ async function bootstrap(){
     }
     currentMonth = DATA.active[DATA.active.length-1];
     buildTabs();
-    wireFilterChips();
     updateFilterBadge();
     renderAll();
     document.getElementById('loadOverlay').style.display = 'none';
@@ -965,12 +929,6 @@ async function bootstrap(){
     console.error('Load error:', err);
     showError(err.message || 'Could not connect to the Google Sheet.');
   }
-}
-
-function wireFilterChips(){
-  document.querySelectorAll('.chip[data-range]').forEach(c=>{
-    c.addEventListener('click', ()=> setRange(c.dataset.range));
-  });
 }
 
 async function refreshData(){
